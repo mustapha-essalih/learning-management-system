@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Course</title>
+    <style>
+        .chapter, .resource {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .resource {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Course</h1>
+    <form id="uploadForm">
+        <label for="title">Course Title:</label>
+        <input type="text" id="userId" name="userId" required><br><br>
+        <input type="text" id="title" name="title" required><br><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea><br><br>
+
+        <label for="duration">Duration:</label>
+        <input type="number" id="duration" name="duration" required><br><br>
+
+        <label for="level">Level:</label>
+        <select id="level" name="level" required>
+            <option value="BEGINNER">Beginner</option>
+            <option value="INTERMEDIATE">Intermediate</option>
+            <option value="ADVANCED">Advanced</option>
+        </select><br><br>
+
+        <label for="language">Language:</label>
+        <select id="language" name="language" required>
+            <option value="ENGLISH">English</option>
+            <option value="SPANISH">Spanish</option>
+            <option value="FRENCH">French</option>
+            <!-- Add more languages as needed -->
+        </select><br><br>
+
+        <label for="price">Price:</label>
+        <input type="number" step="0.01" id="price" name="price"><br><br>
+
+        <label for="isFree">Is Free:</label>
+        <input type="checkbox" id="isFree" name="isFree"><br><br>
+
+        <label for="courseImage">Course Image:</label>
+        <input type="file" id="courseImage" name="courseImage" accept="image/*" required><br><br>
+
+        <div id="chapters">
+            <h3>Chapters</h3>
+        </div>
+        <button type="button" onclick="addChapter()">Add Chapter</button><br><br>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <script>
+        let chapterCount = 0;
+        let resourceCount = 0;
+
+        function addChapter() {
+            chapterCount++;
+            const chapterDiv = document.createElement('div');
+            chapterDiv.className = 'chapter';
+            chapterDiv.id = 'chapter-' + chapterCount;
+
+            chapterDiv.innerHTML = `
+                <label for="chapterTitle-${chapterCount}">Chapter Title:</label>
+                <input type="text" id="chapterTitle-${chapterCount}" name="chapters[${chapterCount - 1}].title" required><br><br>
+                <label for="chapterFree-${chapterCount}">Is Free:</label>
+                <input type="checkbox" id="chapterFree-${chapterCount}" name="chapters[${chapterCount - 1}].isFree"><br><br>
+                <div id="resources-${chapterCount}">
+                    <h4>Resources</h4>
+                </div>
+                <button type="button" onclick="addResource(${chapterCount})">Add Resource</button><br><br>
+                <button type="button" onclick="removeElement('chapter-${chapterCount}')">Remove Chapter</button>
+            `;
+
+            document.getElementById('chapters').appendChild(chapterDiv);
+        }
+
+        function addResource(chapterId) {
+            resourceCount++;
+            const resourceDiv = document.createElement('div');
+            resourceDiv.className = 'resource';
+            resourceDiv.id = 'resource-' + resourceCount;
+
+            resourceDiv.innerHTML = `
+                <label for="resourceTitle-${resourceCount}">Resource Title:</label>
+                <input type="text" id="resourceTitle-${resourceCount}" name="chapters[${chapterId - 1}].resources[${resourceCount - 1}].title" required><br><br>
+                <label for="resourceFile-${resourceCount}">Resource File:</label>
+                <input type="file" id="resourceFile-${resourceCount}" name="chapters[${chapterId - 1}].resources[${resourceCount - 1}].file" required><br><br>
+                <label for="resourceType-${resourceCount}">Resource Type:</label>
+                <input type="text" id="resourceType-${resourceCount}" name="chapters[${chapterId - 1}].resources[${resourceCount - 1}].contentType" required><br><br>
+                <label for="resourceFree-${resourceCount}">Is Free:</label>
+                <input type="checkbox" id="resourceFree-${resourceCount}" name="chapters[${chapterId - 1}].resources[${resourceCount - 1}].isFree"><br><br>
+                <label for="resourceDuration-${resourceCount}">Duration:</label>
+                <input type="number" id="resourceDuration-${resourceCount}" name="chapters[${chapterId - 1}].resources[${resourceCount - 1}].duration"><br><br>
+                <button type="button" onclick="removeElement('resource-${resourceCount}')">Remove Resource</button>
+            `;
+
+            document.getElementById('resources-' + chapterId).appendChild(resourceDiv);
+        }
+
+        function removeElement(elementId) {
+            document.getElementById(elementId).remove();
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('http://localhost:8080/api/teacher/upload_course', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Course uploaded successfully!');
+                } else {
+                    alert('Failed to upload course.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading course.');
+            });
+        });
+    </script>
+</body>
+</html>
