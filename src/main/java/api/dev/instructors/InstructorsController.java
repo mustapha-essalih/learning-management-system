@@ -1,4 +1,4 @@
-package api.dev.instructors.controller;
+package api.dev.instructors;
 
 import java.security.Principal;
 import java.util.List;

@@ -18,6 +18,7 @@
     <h1>Buy Course</h1>
     <form id="payment-form">
         <input type="text" id="courseName" placeholder="Course Name" />
+        <input type="text" id="jwtToken" placeholder="Enter your JWT Token" />  
         <input type="number" id="amount" placeholder="Amount (in cents)" />
         <button id="submit">Pay</button>
         <div id="error-message"></div>
@@ -26,28 +27,34 @@
     <script>
         const stripe = Stripe('pk_test_51POm8W2KoHjIbgzwdKvtvfQr8Uubb93kByKSOk94QXWNmqmZW391gyIxC5CV45097IX11dDIjqpcwVQN0dPGGGtI00o3wg817W');
         
-
+        
         document.getElementById('payment-form').addEventListener('submit', async (event) => {
             event.preventDefault();
+            const jwtToken = document.getElementById('jwtToken').value; // Get JWT token value
             const courseName = document.getElementById('courseName').value;
-            const amount = document.getElementById('amount').value;
+            const amount = document.getElementById('amount').value; 
 
-            const response = await fetch('http://localhost:8080/api/students/buy-course', {
+            const response = await fetch('http://localhost:8080/api/students/enroll-course', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}`
                 },
                 body: JSON.stringify({ amount: parseInt(amount), courseName: courseName })
             });
 
             const { sessionId, clientSecret } = await response.json();
 
-            // Redirect to Stripe Checkout
-            const { error } = await stripe.redirectToCheckout({ sessionId: sessionId });
-
+               const { error } = await stripe.redirectToCheckout({
+                sessionId: sessionId
+            });
+ 
+            // Redirect the user 
             if (error) {
                 document.getElementById('error-message').textContent = error.message;
             }
+            else
+                alert('ok')
         });
     </script>
 </body>

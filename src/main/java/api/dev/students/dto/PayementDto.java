@@ -1,15 +1,16 @@
 package api.dev.students.dto;
 
+import java.math.BigDecimal;
 
 public class PayementDto {
     private String courseName;
-    private long amount;
+    private BigDecimal amount;
 
     
     public String getCourseName() {
         return courseName;
     }
-    public long getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 

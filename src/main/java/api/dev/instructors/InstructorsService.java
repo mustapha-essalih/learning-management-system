@@ -1,4 +1,4 @@
-package api.dev.instructors.controller;
+package api.dev.instructors;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -339,6 +339,8 @@ public class InstructorsService {
 
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
        
+        
+        
         if(!user.getCourses().stream().anyMatch(course -> course.getChapters().contains(chapter)))
             throw new ResourceNotFoundException("course is not related with this instructor");
 

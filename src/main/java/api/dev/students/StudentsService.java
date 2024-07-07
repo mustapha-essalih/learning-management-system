@@ -49,6 +49,7 @@ public class StudentsService {
         listOfCourses.add(course);
         
         BigDecimal totalAmount = course.getPrice();
+        
         if (student.getCart() == null) 
         {
             Cart cart = new Cart(student, listOfCourses, totalAmount);
@@ -67,18 +68,17 @@ public class StudentsService {
 
 
 
-
     public ResponseEntity<?> deleteCourseFromCart(Integer courseId, Integer cartId) throws ResourceNotFoundException {
         
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
 
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
-
-        if (cart.getCourses() != null) {
-            
+        System.out.println("FFFFFFFFFF");
+        if (!cart.getCourses().isEmpty()) {
             cart.getCourses().forEach((c) -> {
                 if(c.getCourseId() == course.getCourseId())
                 {
+
                     BigDecimal totalAmount = course.getPrice();
                     cart.setTotalAmount(cart.getTotalAmount().subtract(totalAmount));
                     cart.getCourses().remove(course);

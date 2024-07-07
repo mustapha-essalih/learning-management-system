@@ -45,9 +45,8 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // http.csrf(Customizer.withDefaults());// with default settings, which includes generating and returning a CSRF token to be used in forms or requests.
         http.csrf(AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**", "/api/users/**").permitAll()
+        http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
         .anyRequest().authenticated());
-        
         http.sessionManagement( // ?
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)// dont store any infos about client in the server, dont create cookie
         );

@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = ResourceNotFoundException.class)
-    public ResponseEntity<?> courceException(ResourceNotFoundException e) 
+    public ResponseEntity<?> resourceNotFound(ResourceNotFoundException e) 
     {
         return ResponseEntity.status(404).body(e.getMessage());
     }

@@ -19,8 +19,8 @@ import jakarta.persistence.OneToMany;
 @Entity
 public class Instructors extends User {
      
-
-    
+    @Column(columnDefinition = "TEXT")
+    private String bio;
 
     @OneToMany(cascade = CascadeType.ALL ,  mappedBy = "instructor")
     private List<Courses> courses = new ArrayList<>();
@@ -56,4 +56,16 @@ public class Instructors extends User {
 
 
 
+    public String getBio() {
+        return bio;
+    }
+
+
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+
+    
 }

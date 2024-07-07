@@ -8,26 +8,34 @@ import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionCreateParams.RedirectOnCompletion;
+import com.stripe.param.checkout.SessionCreateParams.UiMode;
 
+import api.dev.authentication.model.User;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.security.JwtService;
 import api.dev.students.StudentsService;
 import api.dev.students.model.Orders;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+ 
+import org.hibernate.validator.constraints.ModCheck.ModType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
+ 
  
 @Service
 public class StripeService {
@@ -38,51 +46,44 @@ public class StripeService {
     private StudentsRepository studentsRepository;
     private CoursesRepository coursesRepository;
     private StudentsService studentsService;
-
-
-    
-
+    private JwtService jwtService;    
+  
     public StripeService(StudentsRepository studentsRepository, CoursesRepository coursesRepository,
-            StudentsService studentsService) {
+            StudentsService studentsService, JwtService jwtService) {
         this.studentsRepository = studentsRepository;
         this.coursesRepository = coursesRepository;
         this.studentsService = studentsService;
+        this.jwtService = jwtService;
     }
 
 
-    public ResponseEntity<?> createCheckoutSession(String successUrl, String cancelUrl, String courseName, Long amount, String email)throws StripeException, ResourceNotFoundException 
+    // if coure is free or not add it to the student
+    // create the order and add it to the student
+    // make the payment
+
+
+    public ResponseEntity<?> createCheckoutSession(String courseName, BigDecimal amount, String email)throws StripeException, ResourceNotFoundException 
     {
         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         Students student = studentsRepository.findByEmail(email).get();
-        Set<Courses> courses = new HashSet<>();
-        courses.add(course);
-        if (course.isFree()) 
-        {
-            if(student.getCourses() == null)
-                student.setCourses(courses);
-            else
-                student.getCourses().add(course);
-            studentsRepository.save(student);
-            return ResponseEntity.ok().build();
-        }
+         
+        if(addCourseToStudent(course, student))
+            return ResponseEntity.ok().body("course enrolled");        
 
+        // linkOrderAndStudent(course,student);
         Stripe.apiKey = stripeApiKey;
-        CustomerCreateParams customerCreateParams = CustomerCreateParams.builder().setDescription(courseName).build();
-
-        Customer customer = Customer.create(customerCreateParams);
 
         SessionCreateParams params = SessionCreateParams.builder()
         .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
         .setMode(SessionCreateParams.Mode.PAYMENT)
-        .setSuccessUrl(successUrl)
-        .setCancelUrl(cancelUrl)
-        .setCustomer(customer.getId())
+        .setUiMode(UiMode.EMBEDDED)
+        .setRedirectOnCompletion(RedirectOnCompletion.NEVER)
         .addLineItem(
         SessionCreateParams.LineItem.builder()
                 .setPriceData(
                         SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("usd")
-                                .setUnitAmount(amount * 100)
+                                .setUnitAmountDecimal(amount)
                                 .setProductData(
                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                 .setName(courseName)
@@ -93,55 +94,76 @@ public class StripeService {
         .build();
 
         Session session = Session.create(params);
-
         Map<String, String> responseData = new HashMap<>();
         responseData.put("sessionId", session.getId());
         responseData.put("clientSecret", session.getPaymentIntent());
-        if(student.getCourses() == null)
-            student.setCourses(courses);
-        else
-            student.getCourses().add(course);
-        studentsRepository.save(student);
+        
         return ResponseEntity.ok().body(responseData);        
     }
 
 
-    public ResponseEntity<?> successPayment(String sessionId) throws ResourceNotFoundException {
-            
-        try {
-            Session session = Session.retrieve(sessionId);
-            String email = session.getCustomerDetails().getEmail();
-            String customerId = session.getCustomer();
-            Customer customer = Customer.retrieve(customerId);
-            
-            String courseName = customer.getDescription();
-            Students student = studentsRepository.findByEmail(email).orElseThrow(() -> new BadCredentialsException("user not found"));
-            Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+   
 
-            Set<Courses> listOfcourse = new HashSet<>();
-            Set<Orders> listOfOrders = new HashSet<>();
-            
-            listOfcourse.add(course);
 
-            Orders newOrder = new Orders(student,listOfcourse, true, course.getPrice());
-
-            listOfOrders.add(newOrder);
-            if (student.getOrders().isEmpty()) 
-                student.setOrders(listOfOrders);
-            else 
-                student.getOrders().add(newOrder);
-
-            if (student.getCart() != null) 
-                studentsService.deleteCourseFromCart(student.getCart().getCartId(), course.getCourseId());
-           
-            studentsRepository.save(student);
-
-            return ResponseEntity.status(201).body("Payment successful and order created!");
-        } catch (StripeException e) {
-            System.out.println(e);
-            return ResponseEntity.status(400).body("Payment failed!");
-
-        }
-
+    private void linkOrderAndStudent(Courses course, Students student) {
+        
+     
+        
     }
+
+
+    private boolean addCourseToStudent(Courses course, Students student) throws ResourceNotFoundException {
+      
+        
+        if (student.getCourses().contains(course)) 
+            return true;    
+
+        if (student.getCart() != null) 
+            studentsService.deleteCourseFromCart(course.getCourseId() ,student.getCart().getCartId() );
+        
+        student.getCourses().add(course);
+        studentsRepository.save(student);
+        
+        if (course.isFree()) return true;
+        return false;
+    }
+
+
+    // public ResponseEntity<?> successPayment(String sessionId) throws ResourceNotFoundException {
+            
+    //     try {
+    //         Session session = Session.retrieve(sessionId);
+    //         String email = session.getCustomerDetails().getEmail();
+    //         String customerId = session.getCustomer();
+    //         Customer customer = Customer.retrieve(customerId);
+            
+    //         String courseName = customer.getDescription();
+    //         Students student = studentsRepository.findByEmail(email).orElseThrow(() -> new BadCredentialsException("user not found"));
+    //         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+
+    //         Set<Courses> listOfcourse = new HashSet<>();
+    //         Set<Orders> listOfOrders = new HashSet<>();
+            
+    //         listOfcourse.add(course);
+
+    //         Orders newOrder = new Orders(student,listOfcourse, true, course.getPrice());
+
+    //         listOfOrders.add(newOrder);
+    //         if (student.getOrders().isEmpty()) 
+    //             student.setOrders(listOfOrders);
+    //         else 
+    //             student.getOrders().add(newOrder);
+
+            
+           
+    //         studentsRepository.save(student);
+
+    //         return ResponseEntity.status(201).body("Payment successful and order created!");
+    //     } catch (StripeException e) {
+    //         System.out.println(e);
+    //         return ResponseEntity.status(400).body("Payment failed!");
+
+    //     }
+
+    // }
 }
