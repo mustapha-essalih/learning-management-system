@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import api.dev.exceptions.ResourceNotFoundException;
+
 
 public class FileUtils {
 
-    public static byte[] returnFileFromStorage(String fileUrl) {
+    public static byte[] returnFileFromStorage(String fileUrl) throws ResourceNotFoundException {
         if (fileUrl.isBlank()) {
             return null;
         }
@@ -19,7 +21,7 @@ public class FileUtils {
             
             return Files.readAllBytes(filePath);
         } catch (IOException e) {
-            throw new RuntimeException("file not found");
+            throw new ResourceNotFoundException("file not found");
         }
     }
 }

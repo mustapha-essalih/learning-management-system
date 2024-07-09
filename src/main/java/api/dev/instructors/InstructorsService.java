@@ -434,11 +434,11 @@ public class InstructorsService {
 
     public ResponseEntity<?> getCourses(String email) 
     {
-        Instructors user = instructorRepository.findByEmail(email).get();
+        // Instructors user = instructorRepository.findByEmail(email).get();
         
-        List<CourseDTO> courses = user.getCourses().stream().map((course) -> courseMapper.courseToCourseDTO(course)).toList();
+        // List<CourseDTO> courses = user.getCourses().stream().map((course) -> courseMapper.courseToCourseDTO(course)).toList();
         
-        return ResponseEntity.ok().body(courses);
+        return ResponseEntity.ok().body("courses");
     }
 
 

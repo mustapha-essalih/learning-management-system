@@ -47,7 +47,7 @@ public abstract class User implements UserDetails {
     private String fullName;
 
     @OneToMany(cascade = CascadeType.ALL , mappedBy = "user", orphanRemoval = true)
-    private List<JwtToken> jwtToken = new ArrayList<>();
+    private List<JwtToken> jwtToken;
 
 
 

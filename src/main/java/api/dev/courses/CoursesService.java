@@ -1,20 +1,37 @@
 package api.dev.courses;
 
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import api.dev.authentication.model.User;
+import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.dto.CourseDTO;
+import api.dev.courses.dto.GetResourceDto;
 import api.dev.courses.mapper.CourseMapper;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
+import api.dev.courses.repository.FeedbackRepository;
 import api.dev.enums.Language;
 import api.dev.enums.Level;
 import api.dev.enums.Status;
+import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.students.model.Students;
+import api.dev.students.repository.StudentsRepository;
+import api.dev.utils.FileUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -27,12 +44,21 @@ public class CoursesService {
     private EntityManager entityManager;
 
     private CoursesRepository coursesRepository;
+    private FeedbackRepository feedbackRepository;
+    private CourseMapper courseMapper;
+    private UserRepository userRepository;
+
 
     
 
-    public CoursesService(EntityManager entityManager, CoursesRepository coursesRepository) {
+
+    public CoursesService(EntityManager entityManager, CoursesRepository coursesRepository,
+            FeedbackRepository feedbackRepository, CourseMapper courseMapper, UserRepository userRepository) {
         this.entityManager = entityManager;
         this.coursesRepository = coursesRepository;
+        this.feedbackRepository = feedbackRepository;
+        this.courseMapper = courseMapper;
+        this.userRepository = userRepository;
     }
 
 
@@ -117,7 +143,56 @@ public class CoursesService {
 
         return null;
     }
-    
+
+
+    public ResponseEntity<?> getFeedbacksOfCourse(Integer courseId) throws ResourceNotFoundException {
+        
+        coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
+
+        Double averageRating = feedbackRepository.getAverageRatingByCourseId(courseId);
+
+        return ResponseEntity.ok().body(averageRating != null ? averageRating : 0.0);
+    }
+
+
+    public ResponseEntity<?> findCourseByName(String courseName) {
+        
+        List<Courses> courses = coursesRepository.findCourseByName(courseName);
+        List<CourseDTO> courseDTOs = courseMapper.courseToCourseDTO(courses);
+
+        if (courses.isEmpty()) {
+            return ResponseEntity.status(204).body("course not found");
+        }
+
+         
+        // byte[] file = FileUtils.returnFileFromStorage( System.getProperty("user.dir") + "\\uploads\\" + courses.getCourseImage());
+        // return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(courses.getContentType())).body(file);
+        return ResponseEntity.ok(courseDTOs);
+    }
+
+
+    public ResponseEntity<?> getResource( Integer courseId , String filePath, String contentType, String email ) throws ResourceNotFoundException, AccessDeniedException {
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("user not found"));
+
+        if (user.getRole().equals("STUDENT")) 
+        {
+            Courses  course =coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+            if (!course.getStudents().contains(user)) 
+            {
+                throw new RuntimeException("you don't have permission to access this resource");
+            }
+        }
+
+
+        byte[] file = FileUtils.returnFileFromStorage( System.getProperty("user.dir") + "/uploads/" + filePath);
+        
+        
+        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(contentType)).body(file);
+    }
+ 
+
+
 
 
 

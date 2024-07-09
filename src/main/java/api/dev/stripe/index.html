@@ -40,7 +40,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${jwtToken}`
                 },
-                body: JSON.stringify({ amount: parseInt(amount), courseName: courseName })
+                body: JSON.stringify({ amount: parseFloat(amount), courseName: courseName })
             });
 
             const { sessionId, clientSecret } = await response.json();

@@ -7,6 +7,7 @@ import java.util.Set;
 import api.dev.authentication.model.JwtToken;
 import api.dev.authentication.model.User;
 import api.dev.courses.model.Courses;
+import api.dev.courses.model.Feedback;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,6 +19,7 @@ import jakarta.persistence.OneToOne;
 
 @Entity
 public class Students extends User {
+    
     
 
     @ManyToMany
@@ -38,6 +40,9 @@ public class Students extends User {
     
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private Set<Orders> orders;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    private List<Feedback> feedbacks;
 
     public Students() {
     }
@@ -88,6 +93,18 @@ public class Students extends User {
 
     public void setOrders(Set<Orders> orders) {
         this.orders = orders;
+    }
+
+
+
+    public List<Feedback> getFeedbacks() {
+        return feedbacks;
+    }
+
+
+
+    public void setFeedbacks(List<Feedback> feedbacks) {
+        this.feedbacks = feedbacks;
     }
 
 

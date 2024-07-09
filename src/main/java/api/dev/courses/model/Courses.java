@@ -86,7 +86,7 @@ public class Courses {
     private Set<Categories> category; 
 
     @OneToMany( cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "course")
-    private List<Chapter> chapters = new ArrayList<>();
+    private List<Chapter> chapters;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id")
@@ -99,12 +99,14 @@ public class Courses {
     @ManyToMany(mappedBy = "courses")
     private Set<Orders> orders;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
+    private List<Feedback> feedback;
+
     public Courses() {}
 
 
 
-        public Courses(Set<Categories> category, String description, String title, Language language, Level level,
-                BigDecimal price, Status status, boolean isFree) {
+    public Courses(Set<Categories> category, String description, String title, Language language, Level level,BigDecimal price, Status status, boolean isFree) {
 
         this.category = category;
         this.description = description;
@@ -114,211 +116,236 @@ public class Courses {
         this.price = price;
         this.status = status;
         this.isFree = isFree;
-        }
+    }
 
         
 
 
-        public Integer getCourseId() {
-                return courseId;
+    public Integer getCourseId() {
+            return courseId;
+    }
+
+
+
+    public void setCourseId(Integer courseId) {
+            this.courseId = courseId;
+    }
+
+
+
+    public String getTitle() {
+            return title;
+    }
+
+
+
+    public void setTitle(String title) {
+            this.title = title;
+    }
+
+
+
+    public String getDescription() {
+            return description;
+    }
+
+
+
+    public void setDescription(String description) {
+            this.description = description;
+    }
+
+
+
+    public Status getStatus() {
+            return status;
+    }
+
+
+
+    public void setStatus(Status status) {
+            this.status = status;
+    }
+
+
+
+    public Level getLevel() {
+            return level;
+    }
+
+
+
+    public void setLevel(Level level) {
+            this.level = level;
+    }
+
+
+
+    public Language getLanguage() {
+            return language;
+    }
+
+
+
+    public void setLanguage(Language language) {
+            this.language = language;
+    }
+
+
+
+    public BigDecimal getPrice() {
+            return price;
+    }
+
+
+
+    public void setPrice(BigDecimal price) {
+            this.price = price;
+    }
+
+
+
+    public String getCourseImage() {
+            return courseImage;
+    }
+
+
+
+    public void setCourseImage(String courseImage) {
+            this.courseImage = courseImage;
+    }
+
+
+
+    public String getContentType() {
+            return contentType;
+    }
+
+
+
+    public void setContentType(String contentType) {
+            this.contentType = contentType;
+    }
+
+
+
+    public boolean isFree() {
+            return isFree;
+    }
+
+
+
+    public void setFree(boolean isFree) {
+            this.isFree = isFree;
+    }
+
+
+
+    public LocalDateTime getCreatedAt() {
+            return createdAt;
+    }
+
+
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+    }
+
+
+
+    public LocalDateTime getUpdatedAt() {
+            return updatedAt;
+    }
+
+
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+    }
+
+
+
+    public Set<Categories> getCategory() {
+            return category;
+    }
+
+
+
+    public void setCategory(Set<Categories> category) {
+            this.category = category;
+    }
+
+
+
+    public List<Chapter> getChapters() {
+            return chapters;
+    }
+
+
+
+    public void setChapters(List<Chapter> chapters) {
+            this.chapters = chapters;
+    }
+
+
+
+    public Instructors getInstructor() {
+            return instructor;
+    }
+
+
+
+    public void setInstructor(Instructors instructor) {
+            this.instructor = instructor;
+    }
+
+
+
+    public Set<Students> getStudents() {
+            return students;
+    }
+
+
+
+    public void setStudents(Set<Students> students) {
+            this.students = students;
+    }
+
+
+
+    public Set<Orders> getOrders() {
+            return orders;
+    }
+
+
+
+    public void setOrders(Set<Orders> orders) {
+            this.orders = orders;
+    }
+
+
+
+    public List<Feedback> getFeedback() {
+        return feedback;
+    }
+
+
+
+    public void setFeedback(List<Feedback> feedback) {
+        this.feedback = feedback;
+    }
+
+    public Double calculateAverageRating() {
+        if (feedback.isEmpty()) {
+            return 0.0; // or handle as needed
         }
 
-
-
-        public void setCourseId(Integer courseId) {
-                this.courseId = courseId;
+        double sum = 0.0;
+        for (Feedback f : feedback) {
+            sum += f.getRating();
         }
 
-
-
-        public String getTitle() {
-                return title;
-        }
-
-
-
-        public void setTitle(String title) {
-                this.title = title;
-        }
-
-
-
-        public String getDescription() {
-                return description;
-        }
-
-
-
-        public void setDescription(String description) {
-                this.description = description;
-        }
-
-
-
-        public Status getStatus() {
-                return status;
-        }
-
-
-
-        public void setStatus(Status status) {
-                this.status = status;
-        }
-
-
-
-        public Level getLevel() {
-                return level;
-        }
-
-
-
-        public void setLevel(Level level) {
-                this.level = level;
-        }
-
-
-
-        public Language getLanguage() {
-                return language;
-        }
-
-
-
-        public void setLanguage(Language language) {
-                this.language = language;
-        }
-
-
-
-        public BigDecimal getPrice() {
-                return price;
-        }
-
-
-
-        public void setPrice(BigDecimal price) {
-                this.price = price;
-        }
-
-
-
-        public String getCourseImage() {
-                return courseImage;
-        }
-
-
-
-        public void setCourseImage(String courseImage) {
-                this.courseImage = courseImage;
-        }
-
-
-
-        public String getContentType() {
-                return contentType;
-        }
-
-
-
-        public void setContentType(String contentType) {
-                this.contentType = contentType;
-        }
-
-
-
-        public boolean isFree() {
-                return isFree;
-        }
-
-
-
-        public void setFree(boolean isFree) {
-                this.isFree = isFree;
-        }
-
-
-
-        public LocalDateTime getCreatedAt() {
-                return createdAt;
-        }
-
-
-
-        public void setCreatedAt(LocalDateTime createdAt) {
-                this.createdAt = createdAt;
-        }
-
-
-
-        public LocalDateTime getUpdatedAt() {
-                return updatedAt;
-        }
-
-
-
-        public void setUpdatedAt(LocalDateTime updatedAt) {
-                this.updatedAt = updatedAt;
-        }
-
-
-
-        public Set<Categories> getCategory() {
-                return category;
-        }
-
-
-
-        public void setCategory(Set<Categories> category) {
-                this.category = category;
-        }
-
-
-
-        public List<Chapter> getChapters() {
-                return chapters;
-        }
-
-
-
-        public void setChapters(List<Chapter> chapters) {
-                this.chapters = chapters;
-        }
-
-
-
-        public Instructors getInstructor() {
-                return instructor;
-        }
-
-
-
-        public void setInstructor(Instructors instructor) {
-                this.instructor = instructor;
-        }
-
-
-
-        public Set<Students> getStudents() {
-                return students;
-        }
-
-
-
-        public void setStudents(Set<Students> students) {
-                this.students = students;
-        }
-
-
-
-        public Set<Orders> getOrders() {
-                return orders;
-        }
-
-
-
-        public void setOrders(Set<Orders> orders) {
-                this.orders = orders;
-        }
+        return sum / feedback.size();
+    }
     
 }

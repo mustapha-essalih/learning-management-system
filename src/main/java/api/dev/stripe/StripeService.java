@@ -4,35 +4,25 @@ package api.dev.stripe;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
-import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.param.checkout.SessionCreateParams.RedirectOnCompletion;
 import com.stripe.param.checkout.SessionCreateParams.UiMode;
 
-import api.dev.authentication.model.User;
-import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.security.JwtService;
 import api.dev.students.StudentsService;
-import api.dev.students.model.Orders;
+import api.dev.students.dto.request.FeeadbackDto;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
- 
-import org.hibernate.validator.constraints.ModCheck.ModType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
  
@@ -62,7 +52,7 @@ public class StripeService {
     // make the payment
 
 
-    public ResponseEntity<?> createCheckoutSession(String courseName, BigDecimal amount, String email)throws StripeException, ResourceNotFoundException 
+    public ResponseEntity<?> createCheckoutSession(String courseName, Long amount, String email)throws StripeException, ResourceNotFoundException 
     {
         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         Students student = studentsRepository.findByEmail(email).get();
@@ -83,7 +73,7 @@ public class StripeService {
                 .setPriceData(
                         SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("usd")
-                                .setUnitAmountDecimal(amount)
+                                .setUnitAmount(amount * 100)
                                 .setProductData(
                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                 .setName(courseName)
@@ -122,12 +112,16 @@ public class StripeService {
             studentsService.deleteCourseFromCart(course.getCourseId() ,student.getCart().getCartId() );
         
         student.getCourses().add(course);
+        // course.getStudents().add(student);
+        // coursesRepository.save(course);
         studentsRepository.save(student);
         
         if (course.isFree()) return true;
         return false;
     }
 
+
+    
 
     // public ResponseEntity<?> successPayment(String sessionId) throws ResourceNotFoundException {
             

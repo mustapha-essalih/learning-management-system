@@ -10,10 +10,13 @@ import org.springframework.stereotype.Service;
 
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Courses;
+import api.dev.courses.model.Feedback;
 import api.dev.courses.repository.CartRepository;
 import api.dev.courses.repository.CoursesRepository;
+import api.dev.courses.repository.FeedbackRepository;
 import api.dev.enums.Status;
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.students.dto.request.FeeadbackDto;
 import api.dev.students.model.Cart;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
@@ -26,16 +29,16 @@ public class StudentsService {
     private StudentsRepository studentsRepository;
     private CoursesRepository coursesRepository;
     private CartRepository cartRepository;
+    private FeedbackRepository feedbackRepository;
 
 
     public StudentsService(StudentsRepository studentsRepository, CoursesRepository coursesRepository,
-            CartRepository cartRepository) {
+            CartRepository cartRepository, FeedbackRepository feedbackRepository) {
         this.studentsRepository = studentsRepository;
         this.coursesRepository = coursesRepository;
         this.cartRepository = cartRepository;
+        this.feedbackRepository = feedbackRepository;
     }
-
-
 
 
 
@@ -73,7 +76,6 @@ public class StudentsService {
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
 
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
-        System.out.println("FFFFFFFFFF");
         if (!cart.getCourses().isEmpty()) {
             cart.getCourses().forEach((c) -> {
                 if(c.getCourseId() == course.getCourseId())
@@ -89,4 +91,26 @@ public class StudentsService {
         
         return ResponseEntity.status(204).build();
     }
+
+
+    public ResponseEntity<?> feedbackCourse(FeeadbackDto dto, String email) throws ResourceNotFoundException {
+    
+        Students student = studentsRepository.findByEmail(email).get();
+        Courses course = coursesRepository.findById(dto.getCourseId()).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
+
+        if (student.getCourses().contains(course)) 
+        {
+            Feedback newFeedback = new Feedback(course, student, dto.getRating(), dto.getComment());
+    
+            student.getFeedbacks().add(newFeedback);
+            course.getFeedback().add(newFeedback);
+    
+            feedbackRepository.save(newFeedback);
+            return ResponseEntity.status(201).build();      
+        }
+        return ResponseEntity.status(400).body("student not enroll this course");
+    }
+
+
+
 }

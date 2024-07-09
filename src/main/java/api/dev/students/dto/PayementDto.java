@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class PayementDto {
     private String courseName;
-    private BigDecimal amount;
+    private Long amount;
 
     
     public String getCourseName() {
         return courseName;
     }
-    public BigDecimal getAmount() {
+    public Long getAmount() {
         return amount;
     }
 

@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(401).body(e.getMessage());
     }
 
- 
+   
+    
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<?> runTimeException(RuntimeException e) {
        

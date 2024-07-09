@@ -23,7 +23,7 @@ public class Instructors extends User {
     private String bio;
 
     @OneToMany(cascade = CascadeType.ALL ,  mappedBy = "instructor")
-    private List<Courses> courses = new ArrayList<>();
+    private List<Courses> courses;
 
 
 

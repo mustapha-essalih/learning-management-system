@@ -1,9 +1,16 @@
 package api.dev.courses.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+
+import api.dev.courses.model.Feedback;
+import api.dev.instructors.model.Instructors;
+import api.dev.students.model.Students;
 
 public class CourseDTO {
+
     private Integer courseId;
     private String title;
     private String description;
@@ -12,8 +19,13 @@ public class CourseDTO {
     private String level;
     private String language;
     private boolean isFree;
+    private String contentType;
+    private LocalDateTime updatedAt;
+    private String createdBy;
+    private Integer numberOfStudents; 
     private List<ChapterDTO> chapters;
-    
+    private Double averageRating;
+
     public Integer getCourseId() {
         return courseId;
     }
@@ -68,11 +80,48 @@ public class CourseDTO {
     public void setChapters(List<ChapterDTO> chapters) {
         this.chapters = chapters;
     }
+
     @Override
     public String toString() {
         return "CourseDTO [courseId=" + courseId + ", title=" + title + ", description=" + description + ", price="
                 + price + ", courseImage=" + courseImage + ", level=" + level + ", language=" + language + ", isFree="
                 + isFree + ", chapters=" + chapters + "]";
+    }
+
+     
+    public String getContentType() {
+        return contentType;
+    }
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+   
+    
+    
+     
+    public String getCreatedBy() {
+        return createdBy;
+    }
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+    public Integer getNumberOfStudents() {
+        return numberOfStudents;
+    }
+    public void setNumberOfStudents(Integer numberOfStudents) {
+        this.numberOfStudents = numberOfStudents;
+    }
+    public Double getAverageRating() {
+        return averageRating;
+    }
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 
 }

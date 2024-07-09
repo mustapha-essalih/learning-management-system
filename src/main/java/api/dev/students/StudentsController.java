@@ -21,6 +21,7 @@ import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.security.JwtService;
 import api.dev.stripe.StripeService;
 import api.dev.students.dto.PayementDto;
+import api.dev.students.dto.request.FeeadbackDto;
 
 @CrossOrigin("*")
 @RequestMapping("/api/students")
@@ -59,5 +60,12 @@ public class StudentsController {
             throw new RuntimeException("Failed to create Stripe session");
         }
     }
+
+    @PostMapping("/add-feedback-to-course")// feeadback enrolled courses
+    public ResponseEntity<?> feedbackCourse(@RequestBody FeeadbackDto dto, Principal principal) throws ResourceNotFoundException {
+        
+        return studentsService.feedbackCourse(dto, principal.getName());
+    }
+    
 
 }
