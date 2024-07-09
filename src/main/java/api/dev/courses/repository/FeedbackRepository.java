@@ -14,4 +14,8 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
     
     @Query("SELECT AVG(r.rating) FROM Feedback r WHERE r.course.courseId = :courseId")
     Double getAverageRatingByCourseId(@Param("courseId") Integer courseId);
+
+
+    @Query("SELECT COUNT(f) FROM Feedback f WHERE f.course.instructor.id = :instructorId")
+    int countTotalFeedbackForInstructor(@Param("instructorId") Integer instructorId);
 }

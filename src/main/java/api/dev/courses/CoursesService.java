@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import api.dev.authentication.model.User;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.dto.CourseDTO;
-import api.dev.courses.dto.GetResourceDto;
+import api.dev.courses.dto.request.GetResourceDto;
 import api.dev.courses.mapper.CourseMapper;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
@@ -45,21 +45,23 @@ public class CoursesService {
 
     private CoursesRepository coursesRepository;
     private FeedbackRepository feedbackRepository;
-    private CourseMapper courseMapper;
     private UserRepository userRepository;
-
+    private CourseMapper courseMapper;
 
     
 
 
     public CoursesService(EntityManager entityManager, CoursesRepository coursesRepository,
-            FeedbackRepository feedbackRepository, CourseMapper courseMapper, UserRepository userRepository) {
+            FeedbackRepository feedbackRepository, UserRepository userRepository,
+            CourseMapper courseMapper) {
         this.entityManager = entityManager;
         this.coursesRepository = coursesRepository;
         this.feedbackRepository = feedbackRepository;
-        this.courseMapper = courseMapper;
         this.userRepository = userRepository;
+        this.courseMapper = courseMapper;
     }
+
+ 
 
 
     @Transactional
@@ -154,19 +156,29 @@ public class CoursesService {
         return ResponseEntity.ok().body(averageRating != null ? averageRating : 0.0);
     }
 
+    public ResponseEntity<?> getCourseDetails(Integer courseId) throws ResourceNotFoundException { // get course without resources
+
+        Courses  course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+        CourseDTO courseDTO = courseMapper.courseToCourseDTOWithDetails(course, false);
+        return ResponseEntity.ok(courseDTO);
+    }
 
     public ResponseEntity<?> findCourseByName(String courseName) {
         
         List<Courses> courses = coursesRepository.findCourseByName(courseName);
-        List<CourseDTO> courseDTOs = courseMapper.courseToCourseDTO(courses);
+        List<CourseDTO> courseDTOs = courseMapper.coursesToCourseDTOsWithDetails(courses, false);
 
         if (courses.isEmpty()) {
             return ResponseEntity.status(204).body("course not found");
         }
+        return ResponseEntity.ok(courseDTOs);
+    }
 
-         
-        // byte[] file = FileUtils.returnFileFromStorage( System.getProperty("user.dir") + "\\uploads\\" + courses.getCourseImage());
-        // return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(courses.getContentType())).body(file);
+
+    public ResponseEntity<?> getAllCourses() {
+
+        List<Courses> allCourse = coursesRepository.findAll();
+        List<CourseDTO> courseDTOs = courseMapper.coursesToCourseDTOsWithDetails(allCourse, true);
         return ResponseEntity.ok(courseDTOs);
     }
 
@@ -174,22 +186,33 @@ public class CoursesService {
     public ResponseEntity<?> getResource( Integer courseId , String filePath, String contentType, String email ) throws ResourceNotFoundException, AccessDeniedException {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("user not found"));
+        Courses  course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
 
         if (user.getRole().equals("STUDENT")) 
         {
-            Courses  course =coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
             if (!course.getStudents().contains(user)) 
             {
                 throw new RuntimeException("you don't have permission to access this resource");
             }
         }
-
+        else if (user.getRole().equals("INSTRUCTOR")) 
+        {
+            if (course.getInstructor().getUserId() != user.getUserId()) {
+                throw new RuntimeException("you don't have permission to access this resource");                
+            }
+        }
 
         byte[] file = FileUtils.returnFileFromStorage( System.getProperty("user.dir") + "/uploads/" + filePath);
         
-        
         return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(contentType)).body(file);
     }
+
+
+
+
+   
+
+   
  
 
 

@@ -4,28 +4,18 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Stream;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import api.dev.authentication.model.User;
-import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.dto.CourseDTO;
 import api.dev.courses.mapper.CourseMapper;
 import api.dev.courses.model.Categories;
@@ -35,18 +25,22 @@ import api.dev.courses.model.Resources;
 import api.dev.courses.repository.CategoryRepository;
 import api.dev.courses.repository.ChapterRepository;
 import api.dev.courses.repository.CoursesRepository;
+import api.dev.courses.repository.FeedbackRepository;
 import api.dev.courses.repository.ResourcesRepository;
 import api.dev.enums.Language;
 import api.dev.enums.Level;
 import api.dev.enums.Status;
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.instructors.dto.CourseTitleDTO;
+import api.dev.instructors.dto.CoursesAnalyticsDTO;
+import api.dev.instructors.dto.InstructorAnalyticsDTO;
 import api.dev.instructors.dto.request.DeleteChapterDto;
 import api.dev.instructors.dto.request.UpdateChapterTitleDto;
+import api.dev.instructors.mapper.InstructorMapper;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
 import api.dev.utils.FileStorageService;
 import jakarta.servlet.ServletRequest;
-import jakarta.transaction.Transactional;
 
 
 
@@ -62,11 +56,16 @@ public class InstructorsService {
     private CategoryRepository categoryRepository;
     private ResourcesRepository resourceRepository; 
     private CourseMapper courseMapper;
+    private InstructorMapper instructorMapper;
+    private FeedbackRepository feedbackRepository;
+
+    
 
     public InstructorsService(FileStorageService fileStorageService, CoursesRepository coursesRepository,
             InstructorsRepository instructorRepository, ResourcesRepository resourcesRepository,
             ChapterRepository chapterRepository, CategoryRepository categoryRepository,
-            ResourcesRepository resourceRepository,CourseMapper courseMapper) {
+            ResourcesRepository resourceRepository, CourseMapper courseMapper, InstructorMapper instructorMapper,
+            FeedbackRepository feedbackRepository) {
         this.fileStorageService = fileStorageService;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
@@ -75,6 +74,8 @@ public class InstructorsService {
         this.categoryRepository = categoryRepository;
         this.resourceRepository = resourceRepository;
         this.courseMapper = courseMapper;
+        this.instructorMapper = instructorMapper;
+        this.feedbackRepository = feedbackRepository;
     }
 
 
@@ -159,7 +160,7 @@ public class InstructorsService {
                 }
             }
             listOfChapters.get(i).setResources(listOfResources);
-             i++;
+            i++;
         }
         Set<Map.Entry<String, String[]>> parameterEntries = request.getParameterMap().entrySet();
 
@@ -418,7 +419,6 @@ public class InstructorsService {
     }
 
     public ResponseEntity<?> deleteResource(Integer resourseId, Principal principal) throws ResourceNotFoundException {
-        
  
         Resources resource = resourceRepository.findById(resourseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
          
@@ -434,12 +434,43 @@ public class InstructorsService {
 
     public ResponseEntity<?> getCourses(String email) 
     {
-        // Instructors user = instructorRepository.findByEmail(email).get();
+        Instructors instructor = instructorRepository.findByEmail(email).get();
         
-        // List<CourseDTO> courses = user.getCourses().stream().map((course) -> courseMapper.courseToCourseDTO(course)).toList();
+        List<CourseDTO> courses = courseMapper.coursesToCourseDTOsWithDetails(instructor.getCourses(), true);
         
-        return ResponseEntity.ok().body("courses");
+        return ResponseEntity.ok().body(courses);
     }
+
+
+	public ResponseEntity<CoursesAnalyticsDTO> getCourseAnalytics(Integer courseId, String email) throws ResourceNotFoundException {
+        
+        Instructors instructor = instructorRepository.findByEmail(email).get(); 
+        Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+
+        if (!instructor.getCourses().contains(course)) 
+            throw new ResourceNotFoundException("course is not related with this instructor");
+
+        CoursesAnalyticsDTO coursesAnalyticsDTO = instructorMapper.toCoursesAnalyticsDTO(course);
+        coursesAnalyticsDTO.setTotalRevenue(coursesRepository.calculateCourseRevenue(courseId));
+        return ResponseEntity.ok(coursesAnalyticsDTO);
+	}
+
+
+    public ResponseEntity<InstructorAnalyticsDTO> getInstructorAnalytics(String email) {
+        
+        Instructors instructor = instructorRepository.findByEmail(email).get(); 
+
+        
+        BigDecimal totalRevenue = coursesRepository.calculateTotalRevenueForInstructor(instructor.getUserId());
+        int totalStudents = coursesRepository.countTotalStudentsForInstructor(instructor.getUserId());
+        int totalFeedback = feedbackRepository.countTotalFeedbackForInstructor(instructor.getUserId());
+        List<CourseTitleDTO> coursesTitle = instructorMapper.toCourseTitleDTOList(instructor.getCourses());
+        InstructorAnalyticsDTO dto =  new InstructorAnalyticsDTO(totalRevenue, totalStudents, totalFeedback, coursesTitle);
+        
+        return ResponseEntity.ok(dto);
+    }
+
+
 
 
 }

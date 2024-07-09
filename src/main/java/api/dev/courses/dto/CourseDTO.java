@@ -3,11 +3,6 @@ package api.dev.courses.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-
-import api.dev.courses.model.Feedback;
-import api.dev.instructors.model.Instructors;
-import api.dev.students.model.Students;
 
 public class CourseDTO {
 

@@ -1,9 +1,11 @@
 package api.dev.courses.dto;
 
 public class ResourceDTO {
+
     private Integer resourceId;
-    private String file;
     private String title;
+    private String file;
+    private String contentType;
 
     
     public Integer getResourceId() {
@@ -24,9 +26,15 @@ public class ResourceDTO {
     public void setTitle(String title) {
         this.title = title;
     }
+    public String getContentType() {
+        return contentType;
+    }
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
     @Override
     public String toString() {
-        return "ResourceDTO [resourceId=" + resourceId + ", file=" + file + ", title=" + title + "]";
+        return "ResourceDTO [resourceId=" + resourceId + ", title=" + title + "]";
     }
 
     

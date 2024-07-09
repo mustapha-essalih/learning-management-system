@@ -13,11 +13,12 @@ import org.apache.tomcat.util.http.parser.MediaType;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import api.dev.courses.dto.GetResourceDto;
+import api.dev.courses.dto.request.GetResourceDto;
 import api.dev.enums.Language;
 import api.dev.enums.Level;
 import api.dev.exceptions.ResourceNotFoundException;
@@ -68,10 +69,22 @@ public class CoursesController {
         return coursesService.getFeedbacksOfCourse(courseId);
     }
 
+    @GetMapping("/get-course-details")// fetch course without resources(images and videos) 
+    public ResponseEntity<?> getCourseDetails(@RequestParam Integer courseId) throws ResourceNotFoundException 
+    {
+        return coursesService.getCourseDetails(courseId);
+    }
     
-    @GetMapping("/find-course-by-name")
+    
+    @GetMapping("/find-course-by-name") // fetch courses without resources(images and videos) 
     public ResponseEntity<?> findCourseByName(@RequestParam String courseName) {
         return coursesService.findCourseByName(courseName);
+    }
+    
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @GetMapping("/get-all-courses")
+    public ResponseEntity<?> getAllCourses() { // get courses with resources
+        return coursesService.getAllCourses();
     }
     
     /*
@@ -80,7 +93,7 @@ public class CoursesController {
      */
    
     
-    @GetMapping("/get-resource") // get image
+    @GetMapping("/get-resource") // fetch resource(images and videos) for just students who enroll the course + INSTRUCTOR of the ccourse + ADMIN + MANAGERS
     public ResponseEntity<?> getResource(@RequestParam Integer courseId, @RequestParam String filePath, @RequestParam String contentType, Principal principal) throws ResourceNotFoundException, AccessDeniedException  {
 
         return coursesService.getResource(courseId, filePath, contentType, principal.getName());

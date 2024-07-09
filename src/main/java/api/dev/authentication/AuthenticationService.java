@@ -60,11 +60,6 @@ public class AuthenticationService {
             Students newStudent = new Students(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
             userRepository.save(newStudent);
         }
-        else if (dto.getRole().equals("MANAGER")) {
-            Managers newInstructor = new Managers(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
-            userRepository.save(newInstructor);
-            
-        }
         else if (dto.getRole().equals("INSTRUCTOR")) {
             Instructors  newManager = new Instructors(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
             userRepository.save(newManager);

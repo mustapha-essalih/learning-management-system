@@ -24,13 +24,14 @@ public class Resources {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer resourceId;
 
+
+    @Column(nullable = false)
+    private String title;
+    
     @Column(columnDefinition="TEXT" , nullable = false)
     private String file;
 
     private String contentType;
-
-    @Column(nullable = false)
-    private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", referencedColumnName = "chapterId")

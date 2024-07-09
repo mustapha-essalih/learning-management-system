@@ -18,10 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.instructors.dto.CoursesAnalyticsDTO;
+import api.dev.instructors.dto.InstructorAnalyticsDTO;
 import api.dev.instructors.dto.request.DeleteChapterDto;
 import api.dev.instructors.dto.request.UpdateChapterTitleDto;
 import jakarta.servlet.ServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 
@@ -92,10 +95,20 @@ public class InstructorsController {
         return instructorsService.deleteResource(resourseId, principal);
     }
 
-    @GetMapping("/get-all-courses")
+    @GetMapping("/get-all-courses") // get all courses created by this instructor 
     public ResponseEntity<?> getCourses(Principal principal) {
         return instructorsService.getCourses(principal.getName());
     }
     
+    @GetMapping("/course-analytics/{courseId}")
+    public ResponseEntity<CoursesAnalyticsDTO> getCourseAnalytics(@PathVariable Integer courseId, Principal principal) throws ResourceNotFoundException {
+        return instructorsService.getCourseAnalytics(courseId, principal.getName());
+    }
+
+    
+    @GetMapping("/get-instructor-analytics")
+    public ResponseEntity<InstructorAnalyticsDTO> getInstructorAnalytics(Principal principal) {
+        return instructorsService.getInstructorAnalytics(principal.getName());
+    }
 
 }
