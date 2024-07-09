@@ -61,9 +61,8 @@ public class AuthenticationService {
             userRepository.save(newStudent);
         }
         else if (dto.getRole().equals("INSTRUCTOR")) {
-            Instructors  newManager = new Instructors(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
-            userRepository.save(newManager);
-        
+            Instructors  newInstructor = new Instructors(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
+            userRepository.save(newInstructor);
         }
         else
             return ResponseEntity.badRequest().build();// role not found

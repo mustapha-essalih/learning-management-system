@@ -37,9 +37,6 @@ public class Students extends User {
 
     @OneToOne(mappedBy = "student" , cascade = CascadeType.ALL) 
     private Cart cart;
-    
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-    private Set<Orders> orders;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
     private List<Feedback> feedbacks;
@@ -83,17 +80,6 @@ public class Students extends User {
         this.cart = cart;
     }
 
-
-
-    public Set<Orders> getOrders() {
-        return orders;
-    }
-
-
-
-    public void setOrders(Set<Orders> orders) {
-        this.orders = orders;
-    }
 
 
 

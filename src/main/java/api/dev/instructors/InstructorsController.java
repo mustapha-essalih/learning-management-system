@@ -43,7 +43,7 @@ public class InstructorsController {
 
 
     @PostMapping("/upload-course")
-    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request)
+    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException
     { 
         return instructorsService.uploadCourse(request);
     }

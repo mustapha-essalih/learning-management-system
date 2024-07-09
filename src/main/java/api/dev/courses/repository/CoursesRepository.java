@@ -26,10 +26,6 @@ public interface CoursesRepository extends JpaRepository<Courses,Integer>{
 
     @Query(value = "SELECT c.price * (SELECT COUNT(*) FROM student_courses sc WHERE sc.course_id = c.course_id) FROM courses c WHERE c.course_id = :courseId AND c.is_free = false", nativeQuery = true)
     BigDecimal calculateCourseRevenue(@Param("courseId") Integer courseId);
-    
-    @Query(value = "SELECT SUM(c.price * (SELECT COUNT(*) FROM student_courses sc WHERE sc.course_id = c.course_id)) FROM courses c WHERE c.is_free = false", nativeQuery = true)
-    BigDecimal calculateTotalRevenue(); // admin
-
 
     @Query(value = "SELECT SUM(c.price * (SELECT COUNT(*) FROM student_courses sc WHERE sc.course_id = c.course_id)) FROM courses c WHERE c.instructor_id = :instructorId AND c.is_free = false", nativeQuery = true)
     BigDecimal calculateTotalRevenueForInstructor(@Param("instructorId") Integer instructorId);

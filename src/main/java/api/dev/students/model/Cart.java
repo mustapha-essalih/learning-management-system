@@ -26,7 +26,7 @@ public class Cart {
     @JoinColumn(name = "user_id")
     private Students student;
     
-    @ManyToMany(cascade = CascadeType.ALL )
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "cart_courses",
         joinColumns = @JoinColumn(

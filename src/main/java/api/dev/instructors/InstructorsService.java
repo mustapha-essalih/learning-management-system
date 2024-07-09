@@ -79,11 +79,11 @@ public class InstructorsService {
     }
 
 
-    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) {
+    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException {
       
         Integer instructorId = Integer.parseInt(request.getParameter("instructorId"));
 
-        Instructors instructor =  instructorRepository.findById(instructorId).orElseThrow(() -> new BadCredentialsException("instructor not found"));
+        Instructors instructor =  instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
 
         // getParameterMap() returns a Map<String, String[]>. This means the key is a
         // String representing the name of the form field, and the value is an array of

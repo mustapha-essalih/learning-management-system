@@ -3,50 +3,40 @@ package api.dev.admin.dto;
 import java.math.BigDecimal;
 
 public class PlatformAnalyticsDTO {
-    private Integer totalCourses;
-    private Integer totalStudents;
-    private Integer totalInstructors;
-    private Integer totalFeedbacks;
+    private Long totalCourses;
+    private Long totalStudents;
+    private Long totalInstructors;
+    private Long totalFeedbacks;
     private BigDecimal totalRevenue;
-    private Double averageRating;
     
-    public Integer getTotalCourses() {
+    public PlatformAnalyticsDTO(Long totalCourses, Long totalStudents, Long totalInstructors,
+    Long totalFeedbacks, BigDecimal totalRevenue) {
+        this.totalCourses = totalCourses;
+        this.totalStudents = totalStudents;
+        this.totalInstructors = totalInstructors;
+        this.totalFeedbacks = totalFeedbacks;
+        this.totalRevenue = totalRevenue;
+    }
+
+    public Long getTotalCourses() {
         return totalCourses;
     }
-    public void setTotalCourses(Integer totalCourses) {
-        this.totalCourses = totalCourses;
-    }
-    public Integer getTotalStudents() {
+
+    public Long getTotalStudents() {
         return totalStudents;
     }
-    public void setTotalStudents(Integer totalStudents) {
-        this.totalStudents = totalStudents;
-    }
-    public Integer getTotalInstructors() {
+
+    public Long getTotalInstructors() {
         return totalInstructors;
     }
-    public void setTotalInstructors(Integer totalInstructors) {
-        this.totalInstructors = totalInstructors;
-    }
-    public Integer getTotalFeedbacks() {
+
+    public Long getTotalFeedbacks() {
         return totalFeedbacks;
     }
-    public void setTotalFeedbacks(Integer totalFeedbacks) {
-        this.totalFeedbacks = totalFeedbacks;
-    }
+
     public BigDecimal getTotalRevenue() {
         return totalRevenue;
     }
-    public void setTotalRevenue(BigDecimal totalRevenue) {
-        this.totalRevenue = totalRevenue;
-    }
-    public Double getAverageRating() {
-        return averageRating;
-    }
-    public void setAverageRating(Double averageRating) {
-        this.averageRating = averageRating;
-    }
-
-
+    
     
 }

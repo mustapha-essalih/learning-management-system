@@ -15,7 +15,7 @@ import api.dev.enums.Language;
 import api.dev.enums.Level;
 import api.dev.enums.Status;
 import api.dev.instructors.model.Instructors;
-import api.dev.students.model.Orders;
+import api.dev.students.model.Cart;
 import api.dev.students.model.Students;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -95,12 +95,12 @@ public class Courses {
 
     @ManyToMany(mappedBy = "courses")
     private Set<Students> students ;
-
-    @ManyToMany(mappedBy = "courses")
-    private Set<Orders> orders;
-
+ 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
     private List<Feedback> feedback;
+
+    @ManyToMany(mappedBy = "courses", cascade = CascadeType.ALL)
+    private Set<Cart> cart;
 
     public Courses() {}
 
@@ -312,19 +312,6 @@ public class Courses {
     }
 
 
-
-    public Set<Orders> getOrders() {
-            return orders;
-    }
-
-
-
-    public void setOrders(Set<Orders> orders) {
-            this.orders = orders;
-    }
-
-
-
     public List<Feedback> getFeedback() {
         return feedback;
     }
@@ -347,5 +334,11 @@ public class Courses {
 
         return sum / feedback.size();
     }
+
+
+
+public Set<Cart> getCart() {
+        return cart;
+}
     
 }
