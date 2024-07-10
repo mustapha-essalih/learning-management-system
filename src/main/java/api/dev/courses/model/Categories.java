@@ -2,6 +2,8 @@ package api.dev.courses.model;
 
 import java.util.Set;
 
+import api.dev.students.model.Students;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,6 +22,11 @@ public class Categories {
 
     private String category;
 
+
+
+    @ManyToMany(mappedBy = "category")
+    private Set<Courses> courses ;
+   
     public Categories() {
     }
 
@@ -43,9 +50,23 @@ public class Categories {
         this.category = category;
     }
 
+    
+
     @Override
     public String toString() {
         return "Categories [categoryId=" + categoryId + ", category=" + category + "]";
+    }
+
+    public Set<Courses> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(Set<Courses> courses) {
+        this.courses = courses;
     } 
     
+    public void deleteCourses(Set<Courses> courses) {
+        this.courses.removeAll(courses);
+        this.courses.clear();
+    }
 }

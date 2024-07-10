@@ -6,11 +6,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import api.dev.admin.dto.PlatformAnalyticsDTO;
+import api.dev.admin.dto.request.CategoryDto;
 import api.dev.authentication.dto.request.SignupDto;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.instructors.dto.CoursesAnalyticsDTO;
@@ -67,5 +69,28 @@ public class AdminController {
     {
         return adminService.deleteUsers(userId);
     }
+
+
+     @PostMapping("/add-category")
+    public ResponseEntity<?> addCategory(@RequestParam String category) {
+        return adminService.addCategory(category);
+    }
+
+    @PutMapping("/update-category")
+    public ResponseEntity<?> updateCategory(@RequestBody CategoryDto dto) throws ResourceNotFoundException 
+    {
+        return adminService.updateCategory(dto);
+    }
+    
+    @DeleteMapping("/delete-category")
+    public ResponseEntity<?> deleteCategory(@RequestParam Integer categoryId) throws ResourceNotFoundException{
+        return adminService.deleteCategory(categoryId);
+    }
+
+    @GetMapping("/all-categories")
+    public ResponseEntity<?> allCategories() {
+        return adminService.allCategories();   
+    }
+
 
 }

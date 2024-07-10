@@ -26,7 +26,6 @@ public class Instructors extends User {
     private List<Courses> courses;
 
 
-
     public Instructors() {
     }
 
@@ -66,6 +65,13 @@ public class Instructors extends User {
         this.bio = bio;
     }
 
-
+    public void removeCourses() {
+        
+        // for (Courses course : courses) {
+        //     course.removeAllAssociations();
+        //     course.getCart().removeAll(course.getCart());
+        // }
+        // courses.clear();
+    }
     
 }

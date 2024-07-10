@@ -35,10 +35,10 @@ public class Students extends User {
     private Set<Courses> courses;
 
 
-    @OneToOne(mappedBy = "student" , cascade = CascadeType.ALL) 
+    @OneToOne(mappedBy = "student" , cascade = CascadeType.ALL, orphanRemoval = true) 
     private Cart cart;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student", orphanRemoval = true)
     private List<Feedback> feedbacks;
 
     public Students() {
@@ -92,7 +92,15 @@ public class Students extends User {
     public void setFeedbacks(List<Feedback> feedbacks) {
         this.feedbacks = feedbacks;
     }
+    
+    public void deleteCourses(Set<Courses> courses) {
+        this.courses.removeAll(courses);
+        this.courses.clear();
+    }
 
-
+    public void deleteFeedBacks(List<Feedback> feedbacks){
+        this.feedbacks.removeAll(feedbacks);
+        this.feedbacks.clear();
+    }
     
 }

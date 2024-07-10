@@ -22,6 +22,7 @@ import api.dev.courses.model.Categories;
 import api.dev.courses.model.Chapter;
 import api.dev.courses.model.Courses;
 import api.dev.courses.model.Resources;
+import api.dev.courses.repository.CartRepository;
 import api.dev.courses.repository.CategoryRepository;
 import api.dev.courses.repository.ChapterRepository;
 import api.dev.courses.repository.CoursesRepository;
@@ -39,8 +40,11 @@ import api.dev.instructors.dto.request.UpdateChapterTitleDto;
 import api.dev.instructors.mapper.InstructorMapper;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
+import api.dev.students.model.Cart;
+import api.dev.students.repository.StudentsRepository;
 import api.dev.utils.FileStorageService;
 import jakarta.servlet.ServletRequest;
+import jakarta.transaction.Transactional;
 
 
 
@@ -58,14 +62,17 @@ public class InstructorsService {
     private CourseMapper courseMapper;
     private InstructorMapper instructorMapper;
     private FeedbackRepository feedbackRepository;
-
+    private StudentsRepository studentsRepository;
+    private CartRepository cartRepository;
+    
     
 
     public InstructorsService(FileStorageService fileStorageService, CoursesRepository coursesRepository,
             InstructorsRepository instructorRepository, ResourcesRepository resourcesRepository,
             ChapterRepository chapterRepository, CategoryRepository categoryRepository,
             ResourcesRepository resourceRepository, CourseMapper courseMapper, InstructorMapper instructorMapper,
-            FeedbackRepository feedbackRepository) {
+            FeedbackRepository feedbackRepository, StudentsRepository studentsRepository,
+            CartRepository cartRepository) {
         this.fileStorageService = fileStorageService;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
@@ -76,8 +83,10 @@ public class InstructorsService {
         this.courseMapper = courseMapper;
         this.instructorMapper = instructorMapper;
         this.feedbackRepository = feedbackRepository;
+        this.studentsRepository = studentsRepository;
+        this.cartRepository = cartRepository;
     }
-
+ 
 
     public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException {
       
@@ -286,7 +295,7 @@ public class InstructorsService {
         return ResponseEntity.status(204).build();
     }
 
-
+    
     public ResponseEntity<?> deleteCourse(Integer courseId, Principal principal) throws ResourceNotFoundException {
     
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
@@ -296,6 +305,10 @@ public class InstructorsService {
         if (user.getUserId() != course.getInstructor().getUserId()) {
             throw new ResourceNotFoundException("course not found");
         }
+        
+        course.deleteCats(course.getCart());
+        course.deleteCategories(course.getCategory());
+        course.deleteStudents(course.getStudents());
         coursesRepository.delete(course);
         return ResponseEntity.status(204).build();
     }

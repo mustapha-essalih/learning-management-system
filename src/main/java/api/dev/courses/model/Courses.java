@@ -86,7 +86,7 @@ public class Courses {
     private Set<Categories> category; 
 
     @OneToMany( cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "course")
-    private List<Chapter> chapters;
+    private List<Chapter> chapters = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id")
@@ -96,10 +96,10 @@ public class Courses {
     @ManyToMany(mappedBy = "courses")
     private Set<Students> students ;
  
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
-    private List<Feedback> feedback;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course" , orphanRemoval = true)
+    private List<Feedback> feedback = new ArrayList<>();;
 
-    @ManyToMany(mappedBy = "courses", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "courses")
     private Set<Cart> cart;
 
     public Courses() {}
@@ -117,8 +117,6 @@ public class Courses {
         this.status = status;
         this.isFree = isFree;
     }
-
-        
 
 
     public Integer getCourseId() {
@@ -337,8 +335,32 @@ public class Courses {
 
 
 
-public Set<Cart> getCart() {
-        return cart;
-}
-    
+    public Set<Cart> getCart() {
+            return cart;
+    }
+
+    public void deleteCats(Set<Cart> carts){
+        carts.forEach((cart) -> {
+            cart.deleteCourses(cart.getCourses());
+            
+        });
+        this.cart.removeAll(carts);    
+        this.cart.clear();
+    }
+
+    public void deleteCategories(Set<Categories> categories){
+        categories.forEach((category) -> category.deleteCourses(category.getCourses()));
+        this.category.removeAll(categories);    
+        this.category.clear();
+    }
+ 
+    public void deleteStudents(Set<Students> students){
+        students.forEach((student) -> {
+            student.deleteCourses(student.getCourses());
+            student.deleteFeedBacks(student.getFeedbacks());
+        });
+        this.students.removeAll(students);    
+        this.students.clear();
+    }
+ 
 }

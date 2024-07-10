@@ -100,6 +100,11 @@ public class Chapter{
         this.course = course;
     }
 
- 
+    public void removeResources() {
+        for (Resources resource : resources) {
+            resource.setChapter(null);
+        }
+        resources.clear();
+    }
     
 }

@@ -8,10 +8,6 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class Managers extends User {
-    
-
-    private String m;
-
 
     public Managers() {
     }

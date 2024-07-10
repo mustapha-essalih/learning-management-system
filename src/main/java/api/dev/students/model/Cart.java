@@ -26,7 +26,7 @@ public class Cart {
     @JoinColumn(name = "user_id")
     private Students student;
     
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(
         name = "cart_courses",
         joinColumns = @JoinColumn(
@@ -83,5 +83,10 @@ public class Cart {
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
+
     
+    public void deleteCourses(Set<Courses> course){
+        this.courses.removeAll(course);
+        this.courses.clear();
+    }
 }

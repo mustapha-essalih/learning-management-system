@@ -38,4 +38,18 @@ public class Admin extends User {
         super(email, password, role, fullName);
         this.categories = categories;
     }
+
+
+
+    public List<Categories> getCategories() {
+        return categories;
+    }
+
+
+
+    public void setCategories(List<Categories> categories) {
+        this.categories = categories;
+    }
+
+    
 }

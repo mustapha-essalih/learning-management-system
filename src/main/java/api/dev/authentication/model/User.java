@@ -26,8 +26,8 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
-@Table(name = "_user")
-// @Table(name = "users")
+// @Table(name = "_user")
+@Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class User implements UserDetails {
 
