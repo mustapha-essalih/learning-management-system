@@ -1,7 +1,9 @@
 package api.dev.students;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
@@ -72,18 +74,24 @@ public class StudentsService {
 
 
     public ResponseEntity<?> deleteCourseFromCart(Integer courseId, Integer cartId) throws ResourceNotFoundException {
-        
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
 
+        
+        
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
-        if (!cart.getCourses().isEmpty()) {
-            cart.getCourses().forEach((c) -> {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
+        
+
+        Set<Courses> courses = cart.getCourses();
+        
+        if (!courses.isEmpty()) {
+            
+
+            courses.forEach((c) -> {
                 if(c.getCourseId() == course.getCourseId())
                 {
-
                     BigDecimal totalAmount = course.getPrice();
                     cart.setTotalAmount(cart.getTotalAmount().subtract(totalAmount));
-                    cart.getCourses().remove(course);
+                    courses.remove(course);
                     cartRepository.save(cart);
                 }
             } );

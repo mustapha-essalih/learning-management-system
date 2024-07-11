@@ -354,13 +354,6 @@ public class Courses {
         this.category.clear();
     }
  
-    public void deleteStudents(Set<Students> students){
-        students.forEach((student) -> {
-            student.deleteCourses(student.getCourses());
-            student.deleteFeedBacks(student.getFeedbacks());
-        });
-        this.students.removeAll(students);    
-        this.students.clear();
-    }
+     
  
 }

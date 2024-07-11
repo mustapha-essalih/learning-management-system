@@ -23,6 +23,7 @@ import api.dev.stripe.StripeService;
 import api.dev.students.dto.PayementDto;
 import api.dev.students.dto.request.FeeadbackDto;
 
+@PreAuthorize("hasRole('STUDENT')")
 @CrossOrigin("*")
 @RequestMapping("/api/students")
 @RestController

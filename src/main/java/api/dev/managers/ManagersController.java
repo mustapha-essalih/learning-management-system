@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.managers.dto.request.UpdateCourseStatusDto;
 
 @PreAuthorize("hasRole('MANAGER')")
 @CrossOrigin("*")

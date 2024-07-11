@@ -1,4 +1,4 @@
-package api.dev.managers;
+package api.dev.managers.dto.request;
 
 import api.dev.enums.Status;
 

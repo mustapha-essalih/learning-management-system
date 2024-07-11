@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.managers.dto.request.UpdateCourseStatusDto;
 
 public class ManagersService {
 

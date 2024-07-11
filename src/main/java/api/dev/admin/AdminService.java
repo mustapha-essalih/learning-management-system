@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import api.dev.admin.dto.PlatformAnalyticsDTO;
 import api.dev.admin.dto.request.CategoryDto;
@@ -33,14 +34,20 @@ import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
 import api.dev.managers.model.Managers;
 import api.dev.managers.repository.ManagersRepository;
+import api.dev.students.StudentsService;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 import api.dev.utils.FileStorageService;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 
 @Service
 public class AdminService {
     
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private CoursesRepository coursesRepository;
     private InstructorsRepository instructorRepository;
     private CategoryRepository categoryRepository;
@@ -53,13 +60,16 @@ public class AdminService {
     private UserRepository userRepository;
     private CartRepository cartRepository;
     private ChapterRepository chapterRepository;
+    private StudentsService studentsService;
     
     
-    public AdminService(CoursesRepository coursesRepository, InstructorsRepository instructorRepository,ChapterRepository chapterRepository,
-    CategoryRepository categoryRepository, AdminRepository adminRepository,
-    ManagersRepository managersRepository, StudentsRepository studentsRepository,
-    FeedbackRepository feedbackRepository, InstructorsService instructorsService,
-    PasswordEncoder passwordEncoder, UserRepository userRepository, CartRepository cartRepository) {
+    public AdminService(EntityManager entityManager, CoursesRepository coursesRepository,
+            InstructorsRepository instructorRepository, CategoryRepository categoryRepository,
+            AdminRepository adminRepository, ManagersRepository managersRepository,
+            StudentsRepository studentsRepository, FeedbackRepository feedbackRepository,
+            InstructorsService instructorsService, PasswordEncoder passwordEncoder, UserRepository userRepository,
+            CartRepository cartRepository, ChapterRepository chapterRepository, StudentsService studentsService) {
+        this.entityManager = entityManager;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
         this.categoryRepository = categoryRepository;
@@ -72,8 +82,11 @@ public class AdminService {
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
         this.chapterRepository = chapterRepository;
+        this.studentsService = studentsService;
     }
- 
+
+
+
     public ResponseEntity<?> createManager(SignupDto dto) {
 
         if(userRepository.findByEmail(dto.getEmail()).isPresent())
@@ -116,37 +129,37 @@ public class AdminService {
         return instructorsService.getCourseAnalytics(courseId, instructor.getEmail());
     }
 
-
-    @Transactional
-    public void deleteCourseById(Integer courseId) {
-        // cart.deleteByCourseId(courseId);
-        coursesRepository.deleteById(courseId);
-    }
-
-    @Transactional
+ 
+ 
+     
     public ResponseEntity<?> deleteUsers(Integer userId) throws ResourceNotFoundException {
         
         Instructors user = instructorRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user not found"));
     
         List<Courses> courses = user.getCourses();
-        // courses.forEach((course) -> 
-        // {
-        //     course.deleteCats(course.getCart());
-        //     course.deleteCategories(course.getCategory());
-        //     course.deleteStudents(course.getStudents());
-        //     coursesRepository.delete(course);
-        // });
+      
+        adminRepository.deleteCartCoursesByInstructorId(userId);
+        courses.forEach((course) -> course.getStudents().forEach((student) -> {
+            try {
+                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId());
+            } catch (ResourceNotFoundException e) {
+                e.printStackTrace();
+            }
+        }));
 
-        user.getCourses().forEach((c) -> {
-            // chapterRepository.deleteAll(c.getChapters());
-            // feedbackRepository.deleteAll(c.getFeedback());
-            // cartRepository.deleteAll(c.getCart());
-            // studentsRepository.deleteAll(c.getStudents());
-
-        });
+        adminRepository.deleteFeedbackByInstructorId(userId);
+        adminRepository.deleteStudentCoursesByInstructorId(userId);
+            
 
 
-        instructorRepository.delete(user);
+
+
+
+
+
+
+
+        // instructorRepository.delete(user);
         return ResponseEntity.noContent().build();
     }
 

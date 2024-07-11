@@ -93,14 +93,10 @@ public class Students extends User {
         this.feedbacks = feedbacks;
     }
     
-    public void deleteCourses(Set<Courses> courses) {
-        this.courses.removeAll(courses);
-        this.courses.clear();
+    public void deleteAllCoursesFromCart() {
+        if (cart != null) {
+            cart.getCourses().removeAll(courses);
+            cart.getCourses().clear();
+        }
     }
-
-    public void deleteFeedBacks(List<Feedback> feedbacks){
-        this.feedbacks.removeAll(feedbacks);
-        this.feedbacks.clear();
-    }
-    
 }

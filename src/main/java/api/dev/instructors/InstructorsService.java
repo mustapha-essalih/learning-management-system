@@ -121,7 +121,11 @@ public class InstructorsService {
 
         Courses newCourse = new Courses(set,request.getParameter("description"),request.getParameter("title"),
         Language.valueOf(request.getParameter("language")), Level.valueOf(request.getParameter("level")),
-        new BigDecimal(request.getParameter("price")), Status.PENDING,  Boolean.parseBoolean(request.getParameter("isFree")));
+        new BigDecimal(request.getParameter("price")), Status.PUBLISHED,  Boolean.parseBoolean(request.getParameter("isFree")));
+                 
+        // Courses newCourse = new Courses(set,request.getParameter("description"),request.getParameter("title"),
+        // Language.valueOf(request.getParameter("language")), Level.valueOf(request.getParameter("level")),
+        // new BigDecimal(request.getParameter("price")), Status.PENDING,  Boolean.parseBoolean(request.getParameter("isFree")));
                  
         return newCourse;
     }
