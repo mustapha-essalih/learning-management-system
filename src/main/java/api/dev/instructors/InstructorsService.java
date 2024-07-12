@@ -40,7 +40,9 @@ import api.dev.instructors.dto.request.UpdateChapterTitleDto;
 import api.dev.instructors.mapper.InstructorMapper;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
+import api.dev.students.StudentsService;
 import api.dev.students.model.Cart;
+import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 import api.dev.utils.FileStorageService;
 import jakarta.servlet.ServletRequest;
@@ -64,15 +66,14 @@ public class InstructorsService {
     private FeedbackRepository feedbackRepository;
     private StudentsRepository studentsRepository;
     private CartRepository cartRepository;
-    
-    
+    private StudentsService studentsService;
 
     public InstructorsService(FileStorageService fileStorageService, CoursesRepository coursesRepository,
             InstructorsRepository instructorRepository, ResourcesRepository resourcesRepository,
             ChapterRepository chapterRepository, CategoryRepository categoryRepository,
             ResourcesRepository resourceRepository, CourseMapper courseMapper, InstructorMapper instructorMapper,
-            FeedbackRepository feedbackRepository, StudentsRepository studentsRepository,
-            CartRepository cartRepository) {
+            FeedbackRepository feedbackRepository, StudentsRepository studentsRepository, CartRepository cartRepository,
+            StudentsService studentsService) {
         this.fileStorageService = fileStorageService;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
@@ -85,8 +86,9 @@ public class InstructorsService {
         this.feedbackRepository = feedbackRepository;
         this.studentsRepository = studentsRepository;
         this.cartRepository = cartRepository;
+        this.studentsService = studentsService;
     }
- 
+
 
     public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException {
       
@@ -300,20 +302,31 @@ public class InstructorsService {
     }
 
     
-    public ResponseEntity<?> deleteCourse(Integer courseId, Principal principal) throws ResourceNotFoundException {
+    public ResponseEntity<Void> deleteCourse(Integer courseId, Principal principal) throws ResourceNotFoundException {
     
-        Instructors user = instructorRepository.findByEmail(principal.getName()).get();
+        Instructors instructor = instructorRepository.findByEmail(principal.getName()).get();
 
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         
-        if (user.getUserId() != course.getInstructor().getUserId()) {
+        if (instructor.getUserId() != course.getInstructor().getUserId()) {
             throw new ResourceNotFoundException("course not found");
         }
         
-        course.deleteCats(course.getCart());
-        course.deleteCategories(course.getCategory());
-        course.deleteStudents(course.getStudents());
+        Set<Students> students = course.getStudents();
+        
+        students.forEach((student) -> {
+            try {
+                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId());
+            } catch (ResourceNotFoundException e) {
+            }
+        });
+
+        instructorRepository.deleteCourseCategoriesJoinTable(instructor.getUserId());
+        instructorRepository.deleteCartCoursesJoinTable(instructor.getUserId());
+        instructorRepository.deleteStudentCoursesJoinTable(instructor.getUserId());
+        
         coursesRepository.delete(course);
+        
         return ResponseEntity.status(204).build();
     }
 
@@ -357,7 +370,6 @@ public class InstructorsService {
 
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
        
-        
         
         if(!user.getCourses().stream().anyMatch(course -> course.getChapters().contains(chapter)))
             throw new ResourceNotFoundException("course is not related with this instructor");

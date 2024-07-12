@@ -54,7 +54,7 @@ public class InstructorsController {
     }
 
     @DeleteMapping("/delete-course")
-    public ResponseEntity<?> deleteCourse(@RequestParam Integer courseId,  Principal principal) throws ResourceNotFoundException
+    public ResponseEntity<Void> deleteCourse(@RequestParam Integer courseId,  Principal principal) throws ResourceNotFoundException
     {
         return instructorsService.deleteCourse(courseId,principal);
     }

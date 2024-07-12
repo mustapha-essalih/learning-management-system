@@ -1,22 +1,21 @@
 package api.dev.admin;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import api.dev.admin.dto.PlatformAnalyticsDTO;
 import api.dev.admin.dto.request.CategoryDto;
+import api.dev.admin.dto.request.UpdateManagerDto;
+import api.dev.admin.dto.response.ManagerDto;
+import api.dev.admin.mapper.ManagersMapper;
 import api.dev.admin.model.Admin;
 import api.dev.admin.repository.AdminRepository;
 import api.dev.authentication.dto.request.SignupDto;
-import api.dev.authentication.model.User;
 import api.dev.authentication.repository.UserRepository;
-import api.dev.courses.mapper.CourseMapper;
 import api.dev.courses.model.Categories;
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CartRepository;
@@ -24,12 +23,10 @@ import api.dev.courses.repository.CategoryRepository;
 import api.dev.courses.repository.ChapterRepository;
 import api.dev.courses.repository.CoursesRepository;
 import api.dev.courses.repository.FeedbackRepository;
-import api.dev.courses.repository.ResourcesRepository;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.instructors.InstructorsService;
 import api.dev.instructors.dto.CoursesAnalyticsDTO;
 import api.dev.instructors.dto.InstructorAnalyticsDTO;
-import api.dev.instructors.mapper.InstructorMapper;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
 import api.dev.managers.model.Managers;
@@ -37,10 +34,8 @@ import api.dev.managers.repository.ManagersRepository;
 import api.dev.students.StudentsService;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
-import api.dev.utils.FileStorageService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 
 @Service
 public class AdminService {
@@ -61,14 +56,19 @@ public class AdminService {
     private CartRepository cartRepository;
     private ChapterRepository chapterRepository;
     private StudentsService studentsService;
+    private PasswordEncoder encoder;
+    private ManagersMapper managersMapper;
     
+
     
+
     public AdminService(EntityManager entityManager, CoursesRepository coursesRepository,
             InstructorsRepository instructorRepository, CategoryRepository categoryRepository,
             AdminRepository adminRepository, ManagersRepository managersRepository,
             StudentsRepository studentsRepository, FeedbackRepository feedbackRepository,
             InstructorsService instructorsService, PasswordEncoder passwordEncoder, UserRepository userRepository,
-            CartRepository cartRepository, ChapterRepository chapterRepository, StudentsService studentsService) {
+            CartRepository cartRepository, ChapterRepository chapterRepository, StudentsService studentsService,
+            PasswordEncoder encoder, ManagersMapper managersMapper) {
         this.entityManager = entityManager;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
@@ -83,24 +83,9 @@ public class AdminService {
         this.cartRepository = cartRepository;
         this.chapterRepository = chapterRepository;
         this.studentsService = studentsService;
+        this.encoder = encoder;
+        this.managersMapper = managersMapper;
     }
-
-
-
-    public ResponseEntity<?> createManager(SignupDto dto) {
-
-        if(userRepository.findByEmail(dto.getEmail()).isPresent())
-        {
-            return ResponseEntity.badRequest().build();
-        }
-        String encodedPassword = passwordEncoder.encode(dto.getPassword());
-
-        Managers  newManager = new Managers(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
-        userRepository.save(newManager);
-        return ResponseEntity.status(201).body("Signup successful");
-    }
-
-
 
     public ResponseEntity<PlatformAnalyticsDTO> getPlatformAnalytics() {
    
@@ -129,16 +114,64 @@ public class AdminService {
         return instructorsService.getCourseAnalytics(courseId, instructor.getEmail());
     }
 
- 
- 
-     
-    public ResponseEntity<?> deleteUsers(Integer userId) throws ResourceNotFoundException {
-        
-        Instructors user = instructorRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user not found"));
+    public ResponseEntity<?> createManager(SignupDto dto) {
+
+        if(userRepository.findByEmail(dto.getEmail()).isPresent())
+        {
+            return ResponseEntity.badRequest().build();
+        }
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
+        Managers  newManager = new Managers(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
+        userRepository.save(newManager);
+        return ResponseEntity.status(201).body("Signup successful");
+    }
+
+
+    public ResponseEntity<Void> updateManager(Integer id, UpdateManagerDto dto) throws ResourceNotFoundException {
+
+        Managers manager = managersRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("manager not found"));
+
+        if (dto.getEmail() != null) 
+            manager.setEmail(dto.getEmail());
+        if (dto.getFullName() != null) 
+            manager.setFullName(dto.getFullName());
+        if (dto.getPassword() != null) 
+            manager.setPassword(encoder.encode(dto.getPassword()));    
+
+        managersRepository.save(manager);
+        return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<Void> deleteManager(Integer id) throws ResourceNotFoundException {
+        Managers manager = managersRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("manager not found"));
+        managersRepository.delete(manager);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    public ResponseEntity<ManagerDto> getMegetManager(Integer id) throws ResourceNotFoundException {
+        Managers manager = managersRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("manager not found"));
+
+        return ResponseEntity.ok(new ManagerDto(manager.getUserId(),manager.getEmail(),manager.getFullName(),manager.getRole()));
+    }
+
+
+    public ResponseEntity<List<ManagerDto>> getAllManagers() {
     
-        List<Courses> courses = user.getCourses();
+        List<Managers> allManagers = managersRepository.findAll();
+
+        List<ManagerDto> dtos = managersMapper.toManagerDtos(allManagers);        
+        
+        return ResponseEntity.ok(dtos);
+    }
+
+    public ResponseEntity<Void> deleteInstructor(Integer instructorId) throws ResourceNotFoundException {
+        
+        Instructors instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
+    
+        List<Courses> courses = instructor.getCourses();
       
-        adminRepository.deleteCartCoursesByInstructorId(userId);
         courses.forEach((course) -> course.getStudents().forEach((student) -> {
             try {
                 studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId());
@@ -147,21 +180,28 @@ public class AdminService {
             }
         }));
 
-        adminRepository.deleteFeedbackByInstructorId(userId);
-        adminRepository.deleteStudentCoursesByInstructorId(userId);
+        instructorRepository.deleteCartCoursesJoinTable(instructorId);
+
+        instructorRepository.deleteStudentCoursesJoinTable(instructorId);
             
+        instructorRepository.deleteCourseCategoriesJoinTable(instructorId);
 
-
-
-
-
-
-
-
-
-        // instructorRepository.delete(user);
+        instructorRepository.delete(instructor); // before delte the instructor delete the join tables
         return ResponseEntity.noContent().build();
     }
+
+    public ResponseEntity<Void> deleteStudent(Integer studentId) throws ResourceNotFoundException {
+        
+        Students student = studentsRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("student not found"));
+ 
+        // delete student_courses join table
+        adminRepository.deleteCoursesByStudentId(studentId);
+        
+        studentsRepository.delete(student);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
     public ResponseEntity<?> addCategory(String category) {
         Admin admin = adminRepository.findByEmail("admin@admin.com").get();
@@ -198,6 +238,13 @@ public class AdminService {
         return ResponseEntity.ok().body(categories);
     }
 
+   
+  
+
+   
+
+
+    
     
 
 
