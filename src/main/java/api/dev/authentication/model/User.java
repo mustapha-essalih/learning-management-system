@@ -5,6 +5,7 @@ package api.dev.authentication.model;
 
 
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToMany;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -25,9 +26,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@Entity
+
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.JOINED)
+@MappedSuperclass
 public abstract class User implements UserDetails {
 
     @Id

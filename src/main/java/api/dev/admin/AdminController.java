@@ -1,5 +1,6 @@
 package api.dev.admin;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import api.dev.admin.dto.PlatformAnalyticsDTO;
 import api.dev.admin.dto.request.CategoryDto;
+import api.dev.admin.dto.request.ChangePasswordDto;
 import api.dev.admin.dto.request.UpdateManagerDto;
 import api.dev.admin.dto.response.ManagerDto;
 import api.dev.authentication.dto.request.SignupDto;
@@ -122,5 +124,10 @@ public class AdminController {
         return adminService.allCategories();   
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto dto, Principal principal) {
+        return adminService.changePassword(dto, principal.getName());
+    }
+    
 
 }

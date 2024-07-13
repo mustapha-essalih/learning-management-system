@@ -35,8 +35,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signin")
-    ResponseEntity<Cookie> signin(@RequestBody SigninDto dto, HttpServletResponse res)
+    ResponseEntity<Cookie> signin(@RequestBody SigninDto dto)
     {
-        return authenticationService.signin(dto , res);
+        return authenticationService.signin(dto);
     }
 }

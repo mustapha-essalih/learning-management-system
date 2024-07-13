@@ -18,6 +18,7 @@ import api.dev.courses.repository.CoursesRepository;
 import api.dev.courses.repository.FeedbackRepository;
 import api.dev.enums.Status;
 import api.dev.exceptions.ResourceNotFoundException;
+import api.dev.instructors.model.Instructors;
 import api.dev.students.dto.request.FeeadbackDto;
 import api.dev.students.model.Cart;
 import api.dev.students.model.Students;
@@ -117,6 +118,18 @@ public class StudentsService {
             return ResponseEntity.status(201).build();      
         }
         return ResponseEntity.status(400).body("student not enroll this course");
+    }
+
+
+
+    public ResponseEntity<Void> updateInfos(String newEmail, String fullName, String email) {
+        Students instructor = studentsRepository.findByEmail(email).get(); 
+        if (newEmail != null) 
+            instructor.setEmail(email);
+        if (fullName != null) 
+            instructor.setFullName(fullName);
+        studentsRepository.save(instructor);
+        return ResponseEntity.noContent().build();
     }
 
 

@@ -120,14 +120,10 @@ public class InstructorsService {
         Categories category = categoryRepository.findByCategory(request.getParameter("category")).orElseThrow(() -> new RuntimeException("upload course error, category not found"));
         Set<Categories> set = new HashSet<>();
         set.add(category);
-
+ 
         Courses newCourse = new Courses(set,request.getParameter("description"),request.getParameter("title"),
         Language.valueOf(request.getParameter("language")), Level.valueOf(request.getParameter("level")),
-        new BigDecimal(request.getParameter("price")), Status.PUBLISHED,  Boolean.parseBoolean(request.getParameter("isFree")));
-                 
-        // Courses newCourse = new Courses(set,request.getParameter("description"),request.getParameter("title"),
-        // Language.valueOf(request.getParameter("language")), Level.valueOf(request.getParameter("level")),
-        // new BigDecimal(request.getParameter("price")), Status.PENDING,  Boolean.parseBoolean(request.getParameter("isFree")));
+        new BigDecimal(request.getParameter("price")), Status.PENDING,  Boolean.parseBoolean(request.getParameter("isFree")));
                  
         return newCourse;
     }
@@ -497,6 +493,21 @@ public class InstructorsService {
         InstructorAnalyticsDTO dto =  new InstructorAnalyticsDTO(totalRevenue, totalStudents, totalFeedback, coursesTitle);
         
         return ResponseEntity.ok(dto);
+    }
+
+
+    public ResponseEntity<Void> updateInfos(String newEmail, String fullName, String bio, String email) 
+    {
+        Instructors instructor = instructorRepository.findByEmail(email).get(); 
+        if (newEmail != null) 
+            instructor.setEmail(email);
+        if (fullName != null) 
+            instructor.setFullName(fullName);
+        if (bio != null) 
+            instructor.setBio(bio);
+        
+        instructorRepository.save(instructor);
+        return ResponseEntity.noContent().build();
     }
 
 

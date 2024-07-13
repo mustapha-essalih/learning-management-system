@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.stripe.exception.StripeException;
 
+import api.dev.admin.AdminService;
+import api.dev.admin.dto.request.ChangePasswordDto;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.security.JwtService;
 import api.dev.stripe.StripeService;
@@ -31,12 +33,13 @@ public class StudentsController {
 
     private StudentsService studentsService;
     private StripeService stripeService;
- 
+    private AdminService adminService;
 
 
-    public StudentsController(StudentsService studentsService, StripeService stripeService, JwtService jwtService) {
+    public StudentsController(StudentsService studentsService, StripeService stripeService, AdminService adminService) {
         this.studentsService = studentsService;
         this.stripeService = stripeService;
+        this.adminService = adminService;
     }
 
     @PostMapping("/add-course-to-cart")
@@ -67,6 +70,19 @@ public class StudentsController {
         
         return studentsService.feedbackCourse(dto, principal.getName());
     }
+    
+
+    @PostMapping("/update-infos")
+    public ResponseEntity<Void> updateInfos(@RequestParam(required = false) String email, @RequestParam(required = false) String fullName,Principal principal) {
+        return studentsService.updateInfos(email,fullName,principal.getName());
+    }
+
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto dto, Principal principal) {
+        return adminService.changePassword(dto, principal.getName());
+    }
+    
     
 
 }

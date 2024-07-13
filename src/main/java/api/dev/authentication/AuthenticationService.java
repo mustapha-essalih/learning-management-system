@@ -70,7 +70,7 @@ public class AuthenticationService {
         return ResponseEntity.status(201).body("Signup successful");
     }
 
-     public ResponseEntity<Cookie> signin(SigninDto dto , HttpServletResponse response ) {
+     public ResponseEntity<Cookie> signin(SigninDto dto) {
         JwtResponse jwt = null;
         try {
             Authentication authenticatedUser = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(),dto.getPassword()));

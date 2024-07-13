@@ -9,12 +9,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import api.dev.admin.dto.PlatformAnalyticsDTO;
 import api.dev.admin.dto.request.CategoryDto;
+import api.dev.admin.dto.request.ChangePasswordDto;
 import api.dev.admin.dto.request.UpdateManagerDto;
 import api.dev.admin.dto.response.ManagerDto;
 import api.dev.admin.mapper.ManagersMapper;
 import api.dev.admin.model.Admin;
 import api.dev.admin.repository.AdminRepository;
 import api.dev.authentication.dto.request.SignupDto;
+import api.dev.authentication.model.User;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Categories;
 import api.dev.courses.model.Courses;
@@ -236,6 +238,16 @@ public class AdminService {
         List<Categories> categories = categoryRepository.findAll();
 
         return ResponseEntity.ok().body(categories);
+    }
+
+    public ResponseEntity<Void> changePassword(ChangePasswordDto dto, String email) {
+        
+        User user = userRepository.findByEmail(email).get();
+
+        if(encoder.matches(dto.getOldPassword(), user.getPassword()))
+            user.setPassword(encoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+        return ResponseEntity.status(204).build();
     }
 
    

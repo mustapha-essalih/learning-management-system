@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import api.dev.admin.AdminService;
+import api.dev.admin.dto.request.ChangePasswordDto;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.instructors.dto.CoursesAnalyticsDTO;
 import api.dev.instructors.dto.InstructorAnalyticsDTO;
@@ -36,12 +38,15 @@ public class InstructorsController {
     
 
     private InstructorsService instructorsService;
+    private AdminService adminService;
     
-    public InstructorsController(InstructorsService instructorsService) {
+
+    public InstructorsController(InstructorsService instructorsService, AdminService adminService) {
         this.instructorsService = instructorsService;
+        this.adminService = adminService;
     }
 
-
+    
     @PostMapping("/upload-course")
     public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException
     { 
@@ -111,4 +116,20 @@ public class InstructorsController {
         return instructorsService.getInstructorAnalytics(principal.getName());
     }
 
+
+    @PostMapping("/update-infos")
+    public ResponseEntity<Void> updateInfos(@RequestParam(required = false) String email, @RequestParam(required = false) String fullName,@RequestParam(required = false) String bio,Principal principal) {
+        return instructorsService.updateInfos(email,fullName,bio,principal.getName());
+    }
+    
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto dto, Principal principal) {
+        return adminService.changePassword(dto, principal.getName());
+    }
+    
 }
+
+
+
+// user update password
