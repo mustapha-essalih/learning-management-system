@@ -26,6 +26,9 @@ public class JwtToken{
     
     private Date expiresAt;
 
+    private boolean revoked;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -38,6 +41,7 @@ public class JwtToken{
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.user = user;
+        revoked = false;
     }
 
     public Integer getJwtId() {
@@ -78,6 +82,14 @@ public class JwtToken{
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isRevoked() {
+        return revoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
     }
 
 

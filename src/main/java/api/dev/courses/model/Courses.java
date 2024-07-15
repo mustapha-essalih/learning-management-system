@@ -105,7 +105,6 @@ public class Courses {
     public Courses() {}
 
 
-
     public Courses(Set<Categories> category, String description, String title, Language language, Level level,BigDecimal price, Status status, boolean isFree) {
 
         this.category = category;

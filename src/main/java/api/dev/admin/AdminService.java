@@ -110,7 +110,7 @@ public class AdminService {
         return instructorsService.getInstructorAnalytics(instructor.getEmail());
     }
 
-    public ResponseEntity<CoursesAnalyticsDTO> getCourseAnalytics(Integer courseId, Integer instructorId) throws ResourceNotFoundException {
+    public ResponseEntity<?> getCourseAnalytics(Integer courseId, Integer instructorId) throws ResourceNotFoundException {
         Instructors instructor =  instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
 
         return instructorsService.getCourseAnalytics(courseId, instructor.getEmail());
@@ -249,17 +249,4 @@ public class AdminService {
         userRepository.save(user);
         return ResponseEntity.status(204).build();
     }
-
-   
-  
-
-   
-
-
-    
-    
-
-
-
-    
 }

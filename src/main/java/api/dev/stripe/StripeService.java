@@ -14,11 +14,9 @@ import api.dev.courses.repository.CoursesRepository;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.security.JwtService;
 import api.dev.students.StudentsService;
-import api.dev.students.dto.request.FeeadbackDto;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,14 +34,12 @@ public class StripeService {
     private StudentsRepository studentsRepository;
     private CoursesRepository coursesRepository;
     private StudentsService studentsService;
-    private JwtService jwtService;    
-  
+    
     public StripeService(StudentsRepository studentsRepository, CoursesRepository coursesRepository,
             StudentsService studentsService, JwtService jwtService) {
         this.studentsRepository = studentsRepository;
         this.coursesRepository = coursesRepository;
         this.studentsService = studentsService;
-        this.jwtService = jwtService;
     }
 
 
@@ -92,18 +88,7 @@ public class StripeService {
     }
 
 
-   
-
-
-    private void linkOrderAndStudent(Courses course, Students student) {
-        
-     
-        
-    }
-
-
     private boolean addCourseToStudent(Courses course, Students student) throws ResourceNotFoundException {
-      
         
         if (student.getCourses().contains(course)) 
             return true;    
@@ -119,45 +104,4 @@ public class StripeService {
         if (course.isFree()) return true;
         return false;
     }
-
-
-    
-
-    // public ResponseEntity<?> successPayment(String sessionId) throws ResourceNotFoundException {
-            
-    //     try {
-    //         Session session = Session.retrieve(sessionId);
-    //         String email = session.getCustomerDetails().getEmail();
-    //         String customerId = session.getCustomer();
-    //         Customer customer = Customer.retrieve(customerId);
-            
-    //         String courseName = customer.getDescription();
-    //         Students student = studentsRepository.findByEmail(email).orElseThrow(() -> new BadCredentialsException("user not found"));
-    //         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
-
-    //         Set<Courses> listOfcourse = new HashSet<>();
-    //         Set<Orders> listOfOrders = new HashSet<>();
-            
-    //         listOfcourse.add(course);
-
-    //         Orders newOrder = new Orders(student,listOfcourse, true, course.getPrice());
-
-    //         listOfOrders.add(newOrder);
-    //         if (student.getOrders().isEmpty()) 
-    //             student.setOrders(listOfOrders);
-    //         else 
-    //             student.getOrders().add(newOrder);
-
-            
-           
-    //         studentsRepository.save(student);
-
-    //         return ResponseEntity.status(201).body("Payment successful and order created!");
-    //     } catch (StripeException e) {
-    //         System.out.println(e);
-    //         return ResponseEntity.status(400).body("Payment failed!");
-
-    //     }
-
-    // }
 }

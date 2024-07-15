@@ -62,10 +62,6 @@ public class CoursesService {
     }
 
  
-
- 
-
-
     @Transactional
     public ResponseEntity<List<CourseDTO>> getCoursesFiltered(String category, BigDecimal minPrice, BigDecimal maxPrice,Language language, Level level,Double minFeedback,  Double maxFeedback, Boolean isFree) {
         
@@ -187,15 +183,6 @@ public class CoursesService {
         
         return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(contentType)).body(file);
     }
-
-
-
-
-   
-
-   
- 
-
 
 
 

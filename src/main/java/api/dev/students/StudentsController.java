@@ -1,16 +1,13 @@
 package api.dev.students;
 
 import java.security.Principal;
-import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,10 +17,13 @@ import com.stripe.exception.StripeException;
 import api.dev.admin.AdminService;
 import api.dev.admin.dto.request.ChangePasswordDto;
 import api.dev.exceptions.ResourceNotFoundException;
-import api.dev.security.JwtService;
 import api.dev.stripe.StripeService;
 import api.dev.students.dto.PayementDto;
 import api.dev.students.dto.request.FeeadbackDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 @PreAuthorize("hasRole('STUDENT')")
 @CrossOrigin("*")
@@ -42,17 +42,41 @@ public class StudentsController {
         this.adminService = adminService;
     }
 
-    @PostMapping("/add-course-to-cart")
-    public ResponseEntity<?> addCourseToCart(@RequestParam Integer courseId, Principal principal) throws ResourceNotFoundException {        
+    @Operation(
+        summary = "Add Course to Cart",
+        description = "Adds a course to the student's cart."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Course added to cart successfully."),
+        @ApiResponse(responseCode = "404", description = "Course is not published, free, or not found.")
+    })
+    @PostMapping("/add-course-to-cart/{courseId}")
+    public ResponseEntity<?> addCourseToCart(@PathVariable Integer courseId, Principal principal) throws ResourceNotFoundException {        
         return studentsService.addCourseToCart(courseId, principal.getName());
     }
 
-    @DeleteMapping("/delete-course-from-cart") 
-    public ResponseEntity<?> deleteCourseFromCart(@RequestParam Integer courseId, Integer cartId) throws ResourceNotFoundException{
+    @Operation(
+        summary = "Delete Course from Cart",
+        description = "Deletes a course from the student's cart."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Course deleted from cart successfully."),
+        @ApiResponse(responseCode = "404", description = "Cart or course not found.")
+    })
+    @DeleteMapping("/delete-course-from-cart/{courseId}") 
+    public ResponseEntity<?> deleteCourseFromCart(@PathVariable Integer courseId, Integer cartId) throws ResourceNotFoundException{
         return studentsService.deleteCourseFromCart(courseId, cartId);
     }
 
 
+    @Operation(
+        summary = "Create Checkout Session for Course Enrollment",
+        description = "Initiates a checkout session for enrolling in a course."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Stripe session created successfully."),
+        @ApiResponse(responseCode = "500", description = "Failed to create Stripe session.")
+    })
     @PostMapping("/enroll-course")
     public ResponseEntity<?> createCheckoutSession(@RequestBody PayementDto dto, Principal principal) throws ResourceNotFoundException {
       
@@ -65,6 +89,15 @@ public class StudentsController {
         }
     }
 
+
+    @Operation(
+        summary = "Add Feedback to Course",
+        description = "Allows students to provide feedback on enrolled courses."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Feedback added successfully."),
+        @ApiResponse(responseCode = "400", description = "Student is not enrolled in the course.")
+    })
     @PostMapping("/add-feedback-to-course")// feeadback enrolled courses
     public ResponseEntity<?> feedbackCourse(@RequestBody FeeadbackDto dto, Principal principal) throws ResourceNotFoundException {
         
@@ -72,17 +105,28 @@ public class StudentsController {
     }
     
 
+    @Operation(
+        summary = "Update Student Information",
+        description = "Allows students to update their email and full name."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Student information updated successfully.")
+    })
     @PostMapping("/update-infos")
     public ResponseEntity<Void> updateInfos(@RequestParam(required = false) String email, @RequestParam(required = false) String fullName,Principal principal) {
         return studentsService.updateInfos(email,fullName,principal.getName());
     }
 
 
+    @Operation(summary = "Change password", description = "Allows users to change their password.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Password changed successfully"),
+        @ApiResponse(responseCode = "400", description = "Old password does not match"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto dto, Principal principal) {
         return adminService.changePassword(dto, principal.getName());
     }
-    
-    
-
+     
 }

@@ -84,7 +84,7 @@ public class JwtService {
                 .claim("authorities", authorities)
                 .claim("id", user.getUserId())
                 .compact();
-        return new JwtResponse(jwt, issuedAt , expiration ); 
+        return new JwtResponse(jwt, issuedAt , expiration); 
     }
  
 

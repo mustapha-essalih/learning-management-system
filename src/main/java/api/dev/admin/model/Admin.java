@@ -29,12 +29,7 @@ public class Admin extends User {
         super(email, password, role, fullName);
     }
 
-
-    public Admin(String email, String password, String role, String fullName, List<JwtToken> jwtToken) {
-        super(email, password, role, fullName, jwtToken);
-    }
-
-    public Admin(String email, String password, String role, String fullName, List<Categories> categories , Integer i) {
+    public Admin(String email, String password, String role, String fullName, List<Categories> categories ) {
         super(email, password, role, fullName);
         this.categories = categories;
     }

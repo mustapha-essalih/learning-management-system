@@ -19,8 +19,4 @@ public class Managers extends User {
         super(email, password, role, fullName);
     }
 
-
-    public Managers(String email, String password, String role, String fullName, List<JwtToken> jwtToken) {
-        super(email, password, role, fullName, jwtToken);
-    }
 }

@@ -37,12 +37,6 @@ public class Instructors extends User {
     }
 
 
-    public Instructors(String email, String password, String role, String fullName, List<JwtToken> jwtToken) {
-        super(email, password, role, fullName, jwtToken);
-    }
-
-
-
     public List<Courses> getCourses() {
         return courses;
     }

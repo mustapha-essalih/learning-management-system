@@ -8,7 +8,7 @@ public class JwtResponse {
     private Date issuedAt;
     private Date expiration;
 
- 
+    
 
     public JwtResponse(String jwt, Date issuedAt, Date expiration) {
         this.jwt = jwt;
@@ -17,14 +17,29 @@ public class JwtResponse {
     }
 
 
+
+
+    public JwtResponse() {
+		//TODO Auto-generated constructor stub
+	}
+
+
+
+
+	
+    @Override
+    public String toString() {
+        return "JwtResponse [jwt=" + jwt + ", issuedAt=" + issuedAt + ", expiration=" + expiration + "]";
+    }
+
+
+
+
     public String getJwt() {
         return jwt;
     }
 
 
-    public void setJwt(String jwt) {
-        this.jwt = jwt;
-    }
 
 
     public Date getIssuedAt() {
@@ -32,9 +47,6 @@ public class JwtResponse {
     }
 
 
-    public void setIssuedAt(Date issuedAt) {
-        this.issuedAt = issuedAt;
-    }
 
 
     public Date getExpiration() {
@@ -42,13 +54,5 @@ public class JwtResponse {
     }
 
 
-    public void setExpiration(Date expiration) {
-        this.expiration = expiration;
-    }
-
-    @Override
-    public String toString() {
-        return "JwtResponse [jwt=" + jwt + ", issuedAt=" + issuedAt + ", expiration=" + expiration + "]";
-    }
-
+    
 }

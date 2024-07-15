@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import api.dev.authentication.model.JwtToken;
 import api.dev.authentication.repository.JwtTokenRepository;
 import io.jsonwebtoken.JwtException;
 
@@ -27,16 +28,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final JwtTokenRepository jwtTokenRepository;
 
-    
-    
 
     public JwtAuthenticationFilter(JwtService jwtService, UserService userService,JwtTokenRepository jwtTokenRepository) {
         this.jwtService = jwtService;
         this.userService = userService;
         this.jwtTokenRepository = jwtTokenRepository;
     }
-
-
 
 
     @Override
@@ -62,9 +59,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
         
         userEmail = jwtService.extractUsername(jwt);
+        JwtToken isRevoked = jwtTokenRepository.findByToken(jwt).get();
+
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.loadUserByUsername(userEmail);
             if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (isRevoked.isRevoked()) 
+                {
+                    response.setStatus(401);  
+                    response.getWriter().write("invalid jwt");
+                    return;    
+                }
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

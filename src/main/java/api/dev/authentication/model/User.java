@@ -27,9 +27,11 @@ import java.util.Collections;
 import java.util.List;
 
 
+
 @Table(name = "users")
-@MappedSuperclass
-public abstract class User implements UserDetails {
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,9 +49,6 @@ public abstract class User implements UserDetails {
     @Column(nullable = false)
     private String fullName;
 
-    @OneToMany(cascade = CascadeType.ALL , mappedBy = "user", orphanRemoval = true)
-    private List<JwtToken> jwtToken;
-
 
 
     public User() {
@@ -63,16 +62,6 @@ public abstract class User implements UserDetails {
         this.role = role;
         this.fullName = fullName;
     }
-
-
-    public User(String email, String password, String role, String fullName, List<JwtToken> jwtToken) {
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.fullName = fullName;
-        this.jwtToken = jwtToken;
-    }
-
 
 
     @Override
@@ -150,21 +139,5 @@ public abstract class User implements UserDetails {
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
-
-
-
-    public List<JwtToken> getJwtToken() {
-        return jwtToken;
-    }
-
-
-
-    public void setJwtToken(List<JwtToken> jwtToken) {
-        this.jwtToken = jwtToken;
-    }
-
-    
-
-    
 
 }

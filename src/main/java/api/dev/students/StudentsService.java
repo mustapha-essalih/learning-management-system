@@ -1,16 +1,12 @@
 package api.dev.students;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
-import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Courses;
 import api.dev.courses.model.Feedback;
 import api.dev.courses.repository.CartRepository;
@@ -18,7 +14,6 @@ import api.dev.courses.repository.CoursesRepository;
 import api.dev.courses.repository.FeedbackRepository;
 import api.dev.enums.Status;
 import api.dev.exceptions.ResourceNotFoundException;
-import api.dev.instructors.model.Instructors;
 import api.dev.students.dto.request.FeeadbackDto;
 import api.dev.students.model.Cart;
 import api.dev.students.model.Students;

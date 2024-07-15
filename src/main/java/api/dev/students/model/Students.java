@@ -52,12 +52,6 @@ public class Students extends User {
     }
 
 
-    public Students(String email, String password, String role, String fullName, List<JwtToken> jwtToken) {
-        super(email, password, role, fullName, jwtToken);
-    }
-
-
-
     public Set<Courses> getCourses() {
         return courses;
     }

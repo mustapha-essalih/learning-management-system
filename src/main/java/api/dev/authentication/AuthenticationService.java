@@ -2,7 +2,9 @@ package api.dev.authentication;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,11 +15,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import api.dev.admin.model.Admin;
+import api.dev.authentication.dto.UserDto;
 import api.dev.authentication.dto.request.SigninDto;
 import api.dev.authentication.dto.request.SignupDto;
 import api.dev.authentication.dto.response.JwtResponse;
+import api.dev.authentication.mapper.UserMapper;
 import api.dev.authentication.model.JwtToken;
 import api.dev.authentication.model.User;
+import api.dev.authentication.repository.JwtTokenRepository;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.instructors.model.Instructors;
 import api.dev.managers.model.Managers;
@@ -34,15 +39,19 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private  JwtTokenRepository jwtTokenRepository; 
+    private UserMapper userMapper;
 
-    
 
     public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager, JwtService jwtService) {
+            AuthenticationManager authenticationManager, JwtService jwtService, JwtTokenRepository jwtTokenRepository,
+            UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.jwtTokenRepository = jwtTokenRepository;
+        this.userMapper = userMapper;
     }
 
     public ResponseEntity<String> signup(SignupDto dto) {
@@ -54,7 +63,6 @@ public class AuthenticationService {
         
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
         
-        
         if (dto.getRole().equals("STUDENT")) 
         {
             Students newStudent = new Students(dto.getEmail(),encodedPassword , dto.getRole(), dto.getFullName());
@@ -65,13 +73,16 @@ public class AuthenticationService {
             userRepository.save(newInstructor);
         }
         else
-            return ResponseEntity.badRequest().build();// role not found
+            return ResponseEntity.badRequest().build();
         
         return ResponseEntity.status(201).body("Signup successful");
     }
 
-     public ResponseEntity<Cookie> signin(SigninDto dto) {
+    public ResponseEntity<UserDto> signin(SigninDto dto) {
+        JwtToken jwtToken = null;
+        UserDto userDto = null;
         JwtResponse jwt = null;
+
         try {
             Authentication authenticatedUser = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(),dto.getPassword()));
             
@@ -79,28 +90,45 @@ public class AuthenticationService {
             User user = (User) authenticatedUser.getPrincipal();
             jwt = jwtService.generateToken(user);
             
-            JwtToken jwtToken = new JwtToken(jwt.getJwt(), jwt.getIssuedAt(), jwt.getExpiration(), user);
+            revokeAllTokenByUser(user.getUserId());
+            jwtToken = new JwtToken(jwt.getJwt(), jwt.getIssuedAt(), jwt.getExpiration(), user);
+            jwtTokenRepository.save(jwtToken);
+            userDto = userMapper.toManagerDto(user);
             
-            // revoke all tokens
-
-            List<JwtToken> jwtTokens = new ArrayList<>();
-
-            jwtTokens.add(jwtToken);
-            jwtToken.setUser(user);
-            user.getJwtToken().add(jwtToken);
-            userRepository.save(user);
             
         } catch (Exception e) {
             throw new BadCredentialsException("email or password incorrect.");
         }
+        JwtResponse token = new JwtResponse(jwt.getJwt(), jwt.getIssuedAt(), jwt.getExpiration());
 
-        Cookie cookie = new Cookie("token", jwt.getJwt());
+        userDto.setJwt(token.getJwt());
 
-        //  cookie.setHttpOnly(true);
-        // cookie.setSecure(true); // Use this in production with HTTPS
-        cookie.setMaxAge(7 * 24 * 60 * 60); // 1 week expiration
 
-        return ResponseEntity.ok().body(cookie);     
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", token.getJwt())
+                // .httpOnly(true)
+                // .secure(true)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 1 week duration
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(userDto);
     }
     
+    
+    private void revokeAllTokenByUser(Integer userId) 
+    {
+        List<JwtToken> jwtTokenOfUser = jwtTokenRepository.findAllValidTokenByUser(userId);
+
+        if(jwtTokenOfUser.isEmpty()) {
+            return;
+        }
+
+        jwtTokenOfUser.forEach(token-> {
+            token.setRevoked(true);
+        });
+
+        jwtTokenRepository.saveAll(jwtTokenOfUser);
+    }
 }

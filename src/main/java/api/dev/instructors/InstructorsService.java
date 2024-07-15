@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -90,7 +93,7 @@ public class InstructorsService {
     }
 
 
-    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException {
+    public ResponseEntity<Void> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException, BadRequestException {
       
         Integer instructorId = Integer.parseInt(request.getParameter("instructorId"));
 
@@ -111,7 +114,7 @@ public class InstructorsService {
         setAllResources(listOfChapters, request);
         setCourse(listOfChapters,request,instructor,newCourses);
  
-        return ResponseEntity.status(201).body("course uploaded");
+        return ResponseEntity.status(201).build();
     }
  
 
@@ -143,7 +146,7 @@ public class InstructorsService {
     }
 
 
-    private void setAllResources(List<Chapter> listOfChapters, MultipartHttpServletRequest request) {
+    private void setAllResources(List<Chapter> listOfChapters, MultipartHttpServletRequest request) throws BadRequestException {
 
         int i = 0;
 
@@ -161,13 +164,13 @@ public class InstructorsService {
                     try {
                         filePath = fileStorageService.storeFileInLocaleStorage(file);
                     } catch (IOException e) {
-                        throw new RuntimeException("error in upload course");
+                        throw new BadRequestException("error in upload course");
                     }
                     Resources resources = new Resources(filePath, file.getContentType());
                     resources.setChapter(listOfChapters.get(i));
                     listOfResources.add(resources);
                 } else {
-                    throw new RuntimeException("error in upload course");
+                    throw new BadRequestException("error in upload course");
                 }
             }
             listOfChapters.get(i).setResources(listOfResources);
@@ -190,7 +193,7 @@ public class InstructorsService {
         }
     }
 
-    private void setCourse(List<Chapter> listOfChapters, MultipartHttpServletRequest request, Instructors instructor, Courses newCourse) 
+    private void setCourse(List<Chapter> listOfChapters, MultipartHttpServletRequest request, Instructors instructor, Courses newCourse) throws BadRequestException 
     {
         List<Courses> listCourses = new ArrayList<>();
     
@@ -201,16 +204,14 @@ public class InstructorsService {
             try {
                 filePath = fileStorageService.storeFileInLocaleStorage(file);
             } catch (IOException e) {
-                throw new RuntimeException("error in upload course");
+                throw new BadRequestException("error in upload course");
             }
             newCourse.setCourseImage(filePath);
             newCourse.setContentType(file.getContentType());
 
         } else
-            throw new RuntimeException("error in upload course");
+            throw new BadRequestException("error in upload course");
 
-            // set course to user
-            // set user to course
         if (instructor.getCourses().isEmpty() ) 
         {
             newCourse.setChapters(listOfChapters);
@@ -231,16 +232,15 @@ public class InstructorsService {
 
 
 
-    public ResponseEntity<?> updateCourse(ServletRequest request, MultipartFile courseImage, Principal principal) throws NumberFormatException, ResourceNotFoundException 
+    public ResponseEntity<?> updateCourse(Integer courseId, ServletRequest request, MultipartFile courseImage, Principal principal) throws NumberFormatException, ResourceNotFoundException, BadRequestException 
     {
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
         
         
-        Courses course = coursesRepository.findById( Integer.parseInt(request.getParameter("courseId"))).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+        Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         
-        if (user.getUserId() != course.getInstructor().getUserId()) {
-            throw new ResourceNotFoundException("course not found");
-        }
+        if (user.getUserId() != course.getInstructor().getUserId()) 
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
         
         Set<Categories> set = new HashSet<>();
         String cat = request.getParameter("category");
@@ -298,15 +298,15 @@ public class InstructorsService {
     }
 
     
-    public ResponseEntity<Void> deleteCourse(Integer courseId, Principal principal) throws ResourceNotFoundException {
+    public ResponseEntity<?> deleteCourse(Integer courseId, Principal principal) throws ResourceNotFoundException {
     
         Instructors instructor = instructorRepository.findByEmail(principal.getName()).get();
 
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         
-        if (instructor.getUserId() != course.getInstructor().getUserId()) {
-            throw new ResourceNotFoundException("course not found");
-        }
+        if (instructor.getUserId() != course.getInstructor().getUserId()) 
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
+        
         
         Set<Students> students = course.getStudents();
         
@@ -334,9 +334,8 @@ public class InstructorsService {
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
 
         if (user.getUserId() != course.getInstructor().getUserId()) 
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
         
-
         List<Resources> listOfResources = new ArrayList<>();
         Chapter chapter = new Chapter(chapterTitle);
         chapter.setCourse(course);
@@ -368,20 +367,20 @@ public class InstructorsService {
        
         
         if(!user.getCourses().stream().anyMatch(course -> course.getChapters().contains(chapter)))
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         chapter.setTitle(dto.getChapterTitle());
         chapterRepository.save(chapter);
         return ResponseEntity.status(204).build();
     }
 
-    public ResponseEntity<?> deleteChapter(DeleteChapterDto dto, Principal principal) throws ResourceNotFoundException {
+    public ResponseEntity<?> deleteChapter(Integer chapterId, Principal principal) throws ResourceNotFoundException {
 
-        Chapter chapter = chapterRepository.findById(dto.getChapterId()).orElseThrow(() -> new ResourceNotFoundException("course not found"));
+        Chapter chapter = chapterRepository.findById(chapterId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
          
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
         if(!chapter.getCourse().getInstructor().equals(user))
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         chapterRepository.delete(chapter);
 
@@ -391,11 +390,11 @@ public class InstructorsService {
     public ResponseEntity<?> addResourse(MultipartFile file, String resourceTitle, Integer chapterId, Principal principal) throws ResourceNotFoundException {
        
         Chapter chapter = chapterRepository.findById(chapterId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
-         
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
 
+
         if(!chapter.getCourse().getInstructor().equals(user))
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         String filePath = "";
 
@@ -419,7 +418,7 @@ public class InstructorsService {
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
 
         if(!user.getUserId().equals(resource.getChapter().getCourse().getInstructor().getUserId()))
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         
         String filePath = "";
@@ -450,7 +449,7 @@ public class InstructorsService {
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
 
         if(!user.getUserId().equals(resource.getChapter().getCourse().getInstructor().getUserId()))
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         resourcesRepository.delete(resource);
         return ResponseEntity.status(204).build();
@@ -467,13 +466,13 @@ public class InstructorsService {
     }
 
 
-	public ResponseEntity<CoursesAnalyticsDTO> getCourseAnalytics(Integer courseId, String email) throws ResourceNotFoundException {
+	public ResponseEntity<?> getCourseAnalytics(Integer courseId, String email) throws ResourceNotFoundException {
         
         Instructors instructor = instructorRepository.findByEmail(email).get(); 
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
 
         if (!instructor.getCourses().contains(course)) 
-            throw new ResourceNotFoundException("course is not related with this instructor");
+            return ResponseEntity.badRequest().body("course is not related with this instructor");
 
         CoursesAnalyticsDTO coursesAnalyticsDTO = instructorMapper.toCoursesAnalyticsDTO(course);
         coursesAnalyticsDTO.setTotalRevenue(coursesRepository.calculateCourseRevenue(courseId));
