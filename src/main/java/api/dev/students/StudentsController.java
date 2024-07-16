@@ -20,11 +20,15 @@ import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.stripe.StripeService;
 import api.dev.students.dto.PayementDto;
 import api.dev.students.dto.request.FeeadbackDto;
+import api.dev.students.model.Students;
+import api.dev.students.repository.StudentsRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
+@Tag(name = "Student Operations", description = "Endpoints for students to manage their courses, cart, feedback, and personal information.")
 @PreAuthorize("hasRole('STUDENT')")
 @CrossOrigin("*")
 @RequestMapping("/api/students")
@@ -34,12 +38,15 @@ public class StudentsController {
     private StudentsService studentsService;
     private StripeService stripeService;
     private AdminService adminService;
+    private StudentsRepository studentsRepository;
 
 
-    public StudentsController(StudentsService studentsService, StripeService stripeService, AdminService adminService) {
+    public StudentsController(StudentsService studentsService, StripeService stripeService, AdminService adminService,
+            StudentsRepository studentsRepository) {
         this.studentsService = studentsService;
         this.stripeService = stripeService;
         this.adminService = adminService;
+        this.studentsRepository = studentsRepository;
     }
 
     @Operation(
@@ -48,7 +55,8 @@ public class StudentsController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Course added to cart successfully."),
-        @ApiResponse(responseCode = "404", description = "Course is not published, free, or not found.")
+        @ApiResponse(responseCode = "404", description = "Course is not published, free, or not found."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @PostMapping("/add-course-to-cart/{courseId}")
     public ResponseEntity<?> addCourseToCart(@PathVariable Integer courseId, Principal principal) throws ResourceNotFoundException {        
@@ -61,11 +69,13 @@ public class StudentsController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Course deleted from cart successfully."),
-        @ApiResponse(responseCode = "404", description = "Cart or course not found.")
+        @ApiResponse(responseCode = "404", description = "Cart or course not found."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @DeleteMapping("/delete-course-from-cart/{courseId}") 
-    public ResponseEntity<?> deleteCourseFromCart(@PathVariable Integer courseId, Integer cartId) throws ResourceNotFoundException{
-        return studentsService.deleteCourseFromCart(courseId, cartId);
+    public ResponseEntity<?> deleteCourseFromCart(@PathVariable Integer courseId, Integer cartId, Principal principal) throws ResourceNotFoundException{
+        Students student = studentsRepository.findByEmail(principal.getName()).get();
+        return studentsService.deleteCourseFromCart(courseId, cartId,student.getUserId() );
     }
 
 
@@ -75,16 +85,15 @@ public class StudentsController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Stripe session created successfully."),
-        @ApiResponse(responseCode = "500", description = "Failed to create Stripe session.")
+        @ApiResponse(responseCode = "500", description = "Failed to create Stripe session."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @PostMapping("/enroll-course")
     public ResponseEntity<?> createCheckoutSession(@RequestBody PayementDto dto, Principal principal) throws ResourceNotFoundException {
       
         try {
-            return stripeService.createCheckoutSession( dto.getCourseName(), dto.getAmount(), principal.getName());
-             
+            return stripeService.createCheckoutSession( dto.getCourseName(), dto.getAmount(), principal.getName());             
         } catch (StripeException e) {
-            System.out.println(e);
             throw new RuntimeException("Failed to create Stripe session");
         }
     }
@@ -96,9 +105,10 @@ public class StudentsController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Feedback added successfully."),
-        @ApiResponse(responseCode = "400", description = "Student is not enrolled in the course.")
+        @ApiResponse(responseCode = "400", description = "Student is not enrolled in the course."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
-    @PostMapping("/add-feedback-to-course")// feeadback enrolled courses
+    @PostMapping("/add-feedback-to-course")
     public ResponseEntity<?> feedbackCourse(@RequestBody FeeadbackDto dto, Principal principal) throws ResourceNotFoundException {
         
         return studentsService.feedbackCourse(dto, principal.getName());
@@ -110,7 +120,8 @@ public class StudentsController {
         description = "Allows students to update their email and full name."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Student information updated successfully.")
+        @ApiResponse(responseCode = "204", description = "Student information updated successfully."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @PostMapping("/update-infos")
     public ResponseEntity<Void> updateInfos(@RequestParam(required = false) String email, @RequestParam(required = false) String fullName,Principal principal) {
@@ -122,7 +133,8 @@ public class StudentsController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Password changed successfully"),
         @ApiResponse(responseCode = "400", description = "Old password does not match"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordDto dto, Principal principal) {

@@ -10,12 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dev.authentication.dto.UserDto;
 import api.dev.authentication.dto.request.SigninDto;
 import api.dev.authentication.dto.request.SignupDto;
-import api.dev.authentication.dto.response.JwtResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 
 

@@ -17,6 +17,7 @@ import api.dev.admin.model.Admin;
 import api.dev.admin.repository.AdminRepository;
 import api.dev.authentication.dto.request.SignupDto;
 import api.dev.authentication.model.User;
+import api.dev.authentication.repository.JwtTokenRepository;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Categories;
 import api.dev.courses.model.Courses;
@@ -60,17 +61,16 @@ public class AdminService {
     private StudentsService studentsService;
     private PasswordEncoder encoder;
     private ManagersMapper managersMapper;
-    
+    private JwtTokenRepository jwtTokenRepository;
 
     
-
     public AdminService(EntityManager entityManager, CoursesRepository coursesRepository,
             InstructorsRepository instructorRepository, CategoryRepository categoryRepository,
             AdminRepository adminRepository, ManagersRepository managersRepository,
             StudentsRepository studentsRepository, FeedbackRepository feedbackRepository,
             InstructorsService instructorsService, PasswordEncoder passwordEncoder, UserRepository userRepository,
             CartRepository cartRepository, ChapterRepository chapterRepository, StudentsService studentsService,
-            PasswordEncoder encoder, ManagersMapper managersMapper) {
+            PasswordEncoder encoder, ManagersMapper managersMapper, JwtTokenRepository jwtTokenRepository) {
         this.entityManager = entityManager;
         this.coursesRepository = coursesRepository;
         this.instructorRepository = instructorRepository;
@@ -87,6 +87,7 @@ public class AdminService {
         this.studentsService = studentsService;
         this.encoder = encoder;
         this.managersMapper = managersMapper;
+        this.jwtTokenRepository = jwtTokenRepository;
     }
 
     public ResponseEntity<PlatformAnalyticsDTO> getPlatformAnalytics() {
@@ -176,13 +177,15 @@ public class AdminService {
       
         courses.forEach((course) -> course.getStudents().forEach((student) -> {
             try {
-                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId());
-            } catch (ResourceNotFoundException e) {
-                e.printStackTrace();
+                
+                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId()); // 
+            } catch (Exception e) {
+                
             }
         }));
-
-        instructorRepository.deleteCartCoursesJoinTable(instructorId);
+        
+        jwtTokenRepository.deleteAll(jwtTokenRepository.findAllValidTokenByUser(instructorId));
+        // instructorRepository.deleteCartCoursesJoinTable(instructorId);
 
         instructorRepository.deleteStudentCoursesJoinTable(instructorId);
             
@@ -198,8 +201,10 @@ public class AdminService {
  
         // delete student_courses join table
         adminRepository.deleteCoursesByStudentId(studentId);
+        jwtTokenRepository.deleteAll(jwtTokenRepository.findAllValidTokenByUser(student.getUserId()));
         
         studentsRepository.delete(student);
+        
         return ResponseEntity.noContent().build();
     }
 

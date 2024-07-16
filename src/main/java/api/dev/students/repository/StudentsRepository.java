@@ -14,4 +14,9 @@ import api.dev.students.model.Students;
 public interface StudentsRepository extends JpaRepository<Students,Integer>{
     Optional<Students> findByEmail(String email);
      
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM cart_courses WHERE cart_id IN (SELECT cart_id FROM cart WHERE user_id = :studentId)", nativeQuery = true)
+    void deleteCoursesFromCartByStudentId(@Param("studentId") Integer studentId);
 }

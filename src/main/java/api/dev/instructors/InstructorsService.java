@@ -12,10 +12,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -38,18 +37,15 @@ import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.instructors.dto.CourseTitleDTO;
 import api.dev.instructors.dto.CoursesAnalyticsDTO;
 import api.dev.instructors.dto.InstructorAnalyticsDTO;
-import api.dev.instructors.dto.request.DeleteChapterDto;
 import api.dev.instructors.dto.request.UpdateChapterTitleDto;
 import api.dev.instructors.mapper.InstructorMapper;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
 import api.dev.students.StudentsService;
-import api.dev.students.model.Cart;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 import api.dev.utils.FileStorageService;
 import jakarta.servlet.ServletRequest;
-import jakarta.transaction.Transactional;
 
 
 
@@ -67,8 +63,6 @@ public class InstructorsService {
     private CourseMapper courseMapper;
     private InstructorMapper instructorMapper;
     private FeedbackRepository feedbackRepository;
-    private StudentsRepository studentsRepository;
-    private CartRepository cartRepository;
     private StudentsService studentsService;
 
     public InstructorsService(FileStorageService fileStorageService, CoursesRepository coursesRepository,
@@ -87,38 +81,35 @@ public class InstructorsService {
         this.courseMapper = courseMapper;
         this.instructorMapper = instructorMapper;
         this.feedbackRepository = feedbackRepository;
-        this.studentsRepository = studentsRepository;
-        this.cartRepository = cartRepository;
         this.studentsService = studentsService;
     }
 
 
-    public ResponseEntity<Void> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException, BadRequestException {
+    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException, BadRequestException {
       
         Integer instructorId = Integer.parseInt(request.getParameter("instructorId"));
 
         Instructors instructor =  instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
 
-        // getParameterMap() returns a Map<String, String[]>. This means the key is a
-        // String representing the name of the form field, and the value is an array of
-        // String containing all the submitted values for that field.
         Set<Map.Entry<String, String[]>> parameterEntries = request.getParameterMap().entrySet();
-        // Set<Map.Entry<String, String[]>> create a Set containing pairs of key and
-        // value
-
-
+    
         List<Chapter> listOfChapters = new ArrayList<>();
 
-        Courses newCourses = createNewCourse(listOfChapters, request, instructor);
+        Courses newCourses = createNewCourse(request, instructor);
+
         setAllChapters(listOfChapters, parameterEntries, newCourses);
-        setAllResources(listOfChapters, request);
-        setCourse(listOfChapters,request,instructor,newCourses);
+        
+        if(setAllResources(listOfChapters, request) == null)
+            return ResponseEntity.badRequest().body("error in upload course");
+
+        if(saveCourse(listOfChapters,request,instructor,newCourses) == null)
+            return ResponseEntity.badRequest().body("error in upload course");
  
-        return ResponseEntity.status(201).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body("Course uploaded successfully. The status is now pending and it will be reviewed by a manager. Once verified and published, students will be able to view and enroll in the course.");
     }
  
 
-    private Courses createNewCourse(List<Chapter> listOfChapters, MultipartHttpServletRequest request, Instructors instructor) 
+    private Courses createNewCourse(MultipartHttpServletRequest request, Instructors instructor) 
     {
         Categories category = categoryRepository.findByCategory(request.getParameter("category")).orElseThrow(() -> new RuntimeException("upload course error, category not found"));
         Set<Categories> set = new HashSet<>();
@@ -146,7 +137,7 @@ public class InstructorsService {
     }
 
 
-    private void setAllResources(List<Chapter> listOfChapters, MultipartHttpServletRequest request) throws BadRequestException {
+    private String setAllResources(List<Chapter> listOfChapters, MultipartHttpServletRequest request) throws BadRequestException {
 
         int i = 0;
 
@@ -164,13 +155,13 @@ public class InstructorsService {
                     try {
                         filePath = fileStorageService.storeFileInLocaleStorage(file);
                     } catch (IOException e) {
-                        throw new BadRequestException("error in upload course");
+                        return null;
                     }
                     Resources resources = new Resources(filePath, file.getContentType());
                     resources.setChapter(listOfChapters.get(i));
                     listOfResources.add(resources);
                 } else {
-                    throw new BadRequestException("error in upload course");
+                    return null;
                 }
             }
             listOfChapters.get(i).setResources(listOfResources);
@@ -191,26 +182,28 @@ public class InstructorsService {
                 i++;
             }
         }
+        return "";
     }
 
-    private void setCourse(List<Chapter> listOfChapters, MultipartHttpServletRequest request, Instructors instructor, Courses newCourse) throws BadRequestException 
+    private String saveCourse(List<Chapter> listOfChapters, MultipartHttpServletRequest request, Instructors instructor, Courses newCourse) throws BadRequestException 
     {
         List<Courses> listCourses = new ArrayList<>();
     
         MultipartFile file = request.getFile("courseImage");
 
-        if (file != null) {
+        if (file != null && !file.isEmpty()) {
             String filePath;
             try {
                 filePath = fileStorageService.storeFileInLocaleStorage(file);
             } catch (IOException e) {
-                throw new BadRequestException("error in upload course");
+                return null;
             }
             newCourse.setCourseImage(filePath);
             newCourse.setContentType(file.getContentType());
 
-        } else
-            throw new BadRequestException("error in upload course");
+        } 
+        else
+            return null;
 
         if (instructor.getCourses().isEmpty() ) 
         {
@@ -227,15 +220,13 @@ public class InstructorsService {
             instructor.getCourses().addAll(listCourses);
         }
         instructorRepository.save(instructor);
+        return "";
     }
-
-
 
 
     public ResponseEntity<?> updateCourse(Integer courseId, ServletRequest request, MultipartFile courseImage, Principal principal) throws NumberFormatException, ResourceNotFoundException, BadRequestException 
     {
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
-        
         
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         
@@ -282,7 +273,7 @@ public class InstructorsService {
         if (courseImageTitle != null) 
             course.setCourseImage(courseImageTitle);
             
-        if (courseImage != null) {
+        if (courseImage != null && !courseImage.isEmpty()) {
             String filePath;
             try {
                 filePath = fileStorageService.storeFileInLocaleStorage(courseImage);
@@ -312,7 +303,7 @@ public class InstructorsService {
         
         students.forEach((student) -> {
             try {
-                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId());
+                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId());
             } catch (ResourceNotFoundException e) {
             }
         });
@@ -343,13 +334,16 @@ public class InstructorsService {
         {
             String filePath = "";
             try {
+                if (files.get(i).isEmpty()) {
+                    return ResponseEntity.badRequest().body("error update course");
+                }
                 filePath = fileStorageService.storeFileInLocaleStorage(files.get(i));
                 Resources resource = new Resources(filePath, files.get(i).getContentType(), resourseTitle.get(i));
                 resource.setChapter(chapter);
                 listOfResources.add(resource);
                 } 
             catch (IOException e) {
-                throw new RuntimeException("error update resourse");
+                return ResponseEntity.badRequest().body("error update course");
             }
         }
         chapter.setResources(listOfResources);
@@ -364,7 +358,6 @@ public class InstructorsService {
         Chapter chapter = chapterRepository.findById(dto.getChapterId()).orElseThrow(() -> new ResourceNotFoundException("course not found"));
 
         Instructors user = instructorRepository.findByEmail(principal.getName()).get();
-       
         
         if(!user.getCourses().stream().anyMatch(course -> course.getChapters().contains(chapter)))
             return ResponseEntity.badRequest().body("course is not related with this instructor");
@@ -399,6 +392,9 @@ public class InstructorsService {
         String filePath = "";
 
         try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("error add new resource");
+            }
             filePath = fileStorageService.storeFileInLocaleStorage(file);
         } catch (IOException e) {
             throw new RuntimeException("error update resourse");
@@ -484,7 +480,6 @@ public class InstructorsService {
         
         Instructors instructor = instructorRepository.findByEmail(email).get(); 
 
-        
         BigDecimal totalRevenue = coursesRepository.calculateTotalRevenueForInstructor(instructor.getUserId());
         int totalStudents = coursesRepository.countTotalStudentsForInstructor(instructor.getUserId());
         int totalFeedback = feedbackRepository.countTotalFeedbackForInstructor(instructor.getUserId());

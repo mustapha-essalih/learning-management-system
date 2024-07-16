@@ -25,12 +25,14 @@ import api.dev.instructors.dto.InstructorAnalyticsDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
 
+@Tag(name = "Admin Operations", description = "Endpoints for admins to manage the platform, including creating and managing managers, instructors, students, and categories. Admins can also view platform analytics.")
 
 @PreAuthorize("hasRole('ADMIN')")
 @CrossOrigin("*")

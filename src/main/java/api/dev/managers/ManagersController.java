@@ -13,7 +13,10 @@ import api.dev.managers.dto.request.UpdateCourseStatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+
+@Tag(name = "Manager Operations", description = "verify the course and managing course statuses")
 @PreAuthorize("hasRole('MANAGER')")
 @CrossOrigin("*")
 @RequestMapping("/api/managers")
@@ -34,7 +37,8 @@ public class ManagersController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Course status updated successfully."),
-        @ApiResponse(responseCode = "404", description = "Course not found.")
+        @ApiResponse(responseCode = "404", description = "Course not found."),
+        @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
     @PutMapping("/change-course-status")
     public ResponseEntity<?> changeCourseStatus(@RequestBody UpdateCourseStatusDto dto) throws ResourceNotFoundException{
