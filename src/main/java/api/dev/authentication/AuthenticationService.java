@@ -57,9 +57,7 @@ public class AuthenticationService {
     public ResponseEntity<String> signup(SignupDto dto) {
         
         if(userRepository.findByEmail(dto.getEmail()).isPresent())
-        {
             return ResponseEntity.badRequest().build();
-        }
         
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
         
@@ -108,7 +106,7 @@ public class AuthenticationService {
                 // .httpOnly(true)
                 // .secure(true)
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 1 week duration
+                .maxAge(7 * 24 * 60 * 60) 
                 .build();
 
         return ResponseEntity.ok()

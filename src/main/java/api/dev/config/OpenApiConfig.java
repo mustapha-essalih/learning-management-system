@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 
         info = @Info(
                 description = "OpenApi documentation for Spring Security",
-                title = "Swagger with Spring Boot + Security",
+                title = "Api documentation",
                 version = "1.0"
         ),
         servers = {

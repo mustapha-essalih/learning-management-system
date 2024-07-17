@@ -16,12 +16,7 @@ public interface AdminRepository extends JpaRepository<Admin,Integer>{
 
     @Query(value = "SELECT SUM(c.price * (SELECT COUNT(*) FROM student_courses sc WHERE sc.course_id = c.course_id)) FROM courses c WHERE c.is_free = false", nativeQuery = true)
     BigDecimal calculateTotalRevenue();
-
     
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM cart_courses WHERE cart_id IN (SELECT cart_id FROM cart WHERE user_id = :studentId)", nativeQuery = true)
-    void deleteCoursesFromCartByStudentId(@Param("studentId") Integer studentId);
 
     @Modifying
     @Transactional

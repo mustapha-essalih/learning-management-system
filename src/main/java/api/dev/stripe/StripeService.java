@@ -11,6 +11,7 @@ import com.stripe.param.checkout.SessionCreateParams.UiMode;
 
 import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CoursesRepository;
+import api.dev.enums.Status;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.security.JwtService;
 import api.dev.students.StudentsService;
@@ -52,11 +53,13 @@ public class StripeService {
     {
         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         Students student = studentsRepository.findByEmail(email).get();
-         
+        
+        if (!course.getStatus().equals(Status.PUBLISHED)) {
+            throw new ResourceNotFoundException("course in review by managers");
+        }
         if(addCourseToStudent(course, student))
             return ResponseEntity.ok().body("course enrolled");        
 
-        // linkOrderAndStudent(course,student);
         Stripe.apiKey = stripeApiKey;
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -94,14 +97,13 @@ public class StripeService {
             return true;    
 
         if (student.getCart() != null) 
-            studentsService.deleteCourseFromCart(course.getCourseId() ,student.getCart().getCartId() );
+            studentsService.deleteCourseFromCart(course.getCourseId() ,student.getCart().getCartId() , student.getUserId());
         
         student.getCourses().add(course);
-        // course.getStudents().add(student);
-        // coursesRepository.save(course);
         studentsRepository.save(student);
         
-        if (course.isFree()) return true;
+        if (course.isFree()) 
+            return true;
         return false;
     }
 }

@@ -185,6 +185,10 @@ public class CoursesService {
     }
 
 
-
+    public ResponseEntity<List<CourseDTO>> getCourses() {
+        
+        List<Courses> allCourses = coursesRepository.findAll();
+        return ResponseEntity.ok(courseMapper.coursesToCourseDTOsWithDetails(allCourses, false));
+    }
 
 }
