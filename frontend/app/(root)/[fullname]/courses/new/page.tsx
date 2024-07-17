@@ -21,21 +21,11 @@ export default function UploadCourse() {
 		description: "",
 		price: 0,
 		isFree: false,
-		chapters: [{
-			title: 'test 1',
-			isFree: false,
-			id: 1,
-			resources: []
-		}, {
-			title: 'test 2',
-			isFree: false,
-			id: 2,
-			resources: []
-		}],
+		chapters: [],
 		thumbnail: null,
 		category: 'lifestyle',
 		language: 'ENGLISH',
-		level: 'beginner'
+		level: 'BEGINNERS'
 	})}, [setCourse])
 
 	return (

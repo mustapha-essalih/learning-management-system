@@ -61,11 +61,11 @@ export default function Chapters({newChapter}: {newChapter: any}) {
 				<div className="flex flex-col items-center justify-center w-full gap-3">
 					<SortableContext items={course?.chapters!} strategy={verticalListSortingStrategy}>
 						{
-							course!.chapters.map(({title, id}, index) => {
+							course!.chapters.length > 0 ? course!.chapters.map(({title, id}, index) => {
 								console.log(title);
 								return (
 								<ChapterComponent title={title} id={id} key={id} deleteChapter={deleteChapter}/>
-							)})
+							)}) : <h1>add chapters</h1>
 						}
 					</SortableContext>
 				</div>

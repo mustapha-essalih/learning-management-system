@@ -76,7 +76,15 @@ export default function NewCoursePage({newChapter}: {newChapter: any}) {
 	const setLevel = (l: string) => {
 		setCourse((old) => {
 			const tt = {...old};
-			tt.level = l as ("beginner" | "intermediate" | "advanced");
+			tt.level = l as ("BEGINNERS" | "INTERMEDIATE" | "EXPERT");
+			return tt;
+		});
+	}
+
+	const setCategory = (c: string) => {
+		setCourse((old) => {
+			const tt = {...old};
+			tt.category = c;
 			return tt;
 		});
 	}
@@ -86,17 +94,18 @@ export default function NewCoursePage({newChapter}: {newChapter: any}) {
 		formData.append('title', course?.title!);
 		formData.append('description', course?.description!);
 		formData.append('price', `${course?.price!}`);
-		formData.append('language', course?.language!);
 		formData.append('level', course?.level!);
 		formData.append('isFree', `${course?.isFree!}`);
 		formData.append('language', course?.language!);
+		formData.append('category', course?.category!);
+		formData.append('courseImage', course?.thumbnail!);
 
 		course?.chapters.forEach((c, i) => {
 			formData.append(`chapters[${i}].chapterTitle`, c.title);
-			c.resources.forEach(async (r, j) => {
-				const buffer = Buffer.from(await r.file?.arrayBuffer()!)
+			c.resources.forEach((r, j) => {
+				console.log(i, j);
 				formData.append(`chapters[${i}].resources[${j}].resourceTitle`, r.title);
-				formData.append(`chapters[${i}].resources[${j}].videos`, new Blob([buffer]));
+				formData.append(`chapters[${i}].resources[${j}].videos`, r.file!, r.file?.name);
 			})
 		})
 
@@ -112,7 +121,8 @@ export default function NewCoursePage({newChapter}: {newChapter: any}) {
 			},
 			body: formData
 		})
-		console.log(course);
+		console.log(profile);
+		console.log(formData);
 		console.log(res);
 	}
 
@@ -140,11 +150,19 @@ export default function NewCoursePage({newChapter}: {newChapter: any}) {
 							</select>
 						</div>
 						<div>
-							<label htmlFor="">level</label>
+							<label htmlFor="level">level</label>
 							<select id="level" className="w-full outline-none px-2 py-1 rounded-full h-[40px]" onChange={(e) => setLevel(e.target.value)}>
-								<option value="beginner">beginner</option>
-								<option value="intermediate">intermediate</option>
-								<option value="advanced">advanced</option>
+								<option value="BEGINNERS">beginner</option>
+								<option value="INTERMEDIATE">intermediate</option>
+								<option value="EXPERT">advanced</option>
+							</select>
+						</div>
+						<div>
+							<label htmlFor="cat">category</label>
+							<select id="cat" className="w-full outline-none px-2 py-1 rounded-full h-[40px]" onChange={(e) => setCategory(e.target.value)}>
+								<option value="lifestyle">lifestyle</option>
+								<option value="it">it</option>
+								<option value="health">health</option>
 							</select>
 						</div>
 						<div className="flex items-center gap-3">

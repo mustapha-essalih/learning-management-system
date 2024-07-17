@@ -24,7 +24,7 @@ type Course = {
 	thumbnail: File | null,
 	isFree: boolean,
 	category: string,
-	level: 'beginner' | 'intermediate' | 'advanced',
+	level: "BEGINNERS" | "INTERMEDIATE" | "EXPERT",
 	language: 'ENGLISH' | 'SPANISH' | 'FRENCH',
 	chapters: Chapter[]
 }
@@ -43,21 +43,11 @@ export default function NewCourseProvider({children}: {children: React.ReactNode
 		description: "",
 		price: 0,
 		isFree: false,
-		chapters: [{
-			title: 'test 1',
-			isFree: false,
-			id: 0,
-			resources: []
-		}, {
-			title: 'test 2',
-			isFree: false,
-			id: 1,
-			resources: []
-		}],
+		chapters: [],
 		thumbnail: null,
 		category: 'lifestyle',
 		language: 'ENGLISH',
-		level: 'beginner'
+		level: 'BEGINNERS'
 	});
 
 	return (

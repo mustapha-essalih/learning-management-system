@@ -20,26 +20,7 @@ export interface ResourceProperties {
 export default function Resources({addResource}: {addResource: (resource: Resource) => void}) {
 	const context = useContext(NewCourse);
 	const [open, setOpen] = useState(false);
-	const [resources, setResources] = useState<ResourceProperties[]>([{
-		title: "resource 1",
-		file: null,
-		isFree: false,
-		id: 1,
-	},
-	{
-		title: "resource 2",
-		file: null,
-		isFree: false,
-		id: 2,
-	},
-	{
-		title: "resource 3",
-		file: null,
-		isFree: false,
-		id: 3,
-	}
-
-]);
+	const [resources, setResources] = useState<ResourceProperties[]>([]);
 
 	if (!context)
 		throw new Error('MyComponent must be used within a MyProvider');
@@ -84,9 +65,9 @@ export default function Resources({addResource}: {addResource: (resource: Resour
 				<div className="flex flex-col items-center justify-center w-full gap-3">
 					<SortableContext items={resources} strategy={verticalListSortingStrategy}>
 						{
-							resources.map(({title, id}, index) => (
+							resources.length > 0 ? resources.map(({title, id}, index) => (
 								<ResourceComponent title={title} id={id} key={id} deleteResource={deleteResource}/>
-							))
+							)) : <h1>add more resources</h1>
 						}
 					</SortableContext>
 				</div>
