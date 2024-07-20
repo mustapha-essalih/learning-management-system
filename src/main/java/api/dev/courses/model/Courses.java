@@ -72,7 +72,7 @@ public class Courses {
     @UpdateTimestamp // is triggered every time an entity is updated.
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "course_categories",
             joinColumns = @JoinColumn(

@@ -16,7 +16,12 @@ public interface StudentsRepository extends JpaRepository<Students,Integer>{
      
 
     @Modifying
-    @Transactional
+    @Transactional // for delete all carts course of student
     @Query(value = "DELETE FROM cart_courses WHERE cart_id IN (SELECT cart_id FROM cart WHERE user_id = :studentId)", nativeQuery = true)
     void deleteCoursesFromCartByStudentId(@Param("studentId") Integer studentId);
+
+    @Modifying
+    @Transactional // delete course cart of a student
+    @Query(value = "DELETE FROM cart_courses WHERE cart_id = :cartId AND course_id = :courseId", nativeQuery = true)
+    void deleteCartCourseByCartIdAndCourseId(@Param("cartId") Integer cartId, @Param("courseId") Integer courseId);
 }

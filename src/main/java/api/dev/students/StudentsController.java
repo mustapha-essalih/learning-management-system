@@ -1,6 +1,8 @@
 package api.dev.students;
 
 import java.security.Principal;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -72,8 +74,8 @@ public class StudentsController {
         @ApiResponse(responseCode = "404", description = "Cart or course not found."),
         @ApiResponse(responseCode = "401", description = "ivalid jwt.")
     })
-    @DeleteMapping("/delete-course-from-cart/{courseId}") 
-    public ResponseEntity<?> deleteCourseFromCart(@PathVariable Integer courseId, Integer cartId, Principal principal) throws ResourceNotFoundException{
+    @DeleteMapping("/delete-course-from-cart/{courseId}/{cartId}") 
+    public ResponseEntity<?> deleteCourseFromCart(@PathVariable Integer courseId,@PathVariable Integer cartId, Principal principal) throws ResourceNotFoundException{
         Students student = studentsRepository.findByEmail(principal.getName()).get();
         return studentsService.deleteCourseFromCart(courseId, cartId,student.getUserId() );
     }

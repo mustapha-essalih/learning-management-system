@@ -1,7 +1,6 @@
 package api.dev.admin;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,6 @@ import api.dev.authentication.model.User;
 import api.dev.authentication.repository.JwtTokenRepository;
 import api.dev.authentication.repository.UserRepository;
 import api.dev.courses.model.Categories;
-import api.dev.courses.model.Courses;
 import api.dev.courses.repository.CartRepository;
 import api.dev.courses.repository.CategoryRepository;
 import api.dev.courses.repository.ChapterRepository;
@@ -28,7 +26,6 @@ import api.dev.courses.repository.CoursesRepository;
 import api.dev.courses.repository.FeedbackRepository;
 import api.dev.exceptions.ResourceNotFoundException;
 import api.dev.instructors.InstructorsService;
-import api.dev.instructors.dto.CoursesAnalyticsDTO;
 import api.dev.instructors.dto.InstructorAnalyticsDTO;
 import api.dev.instructors.model.Instructors;
 import api.dev.instructors.repository.InstructorsRepository;
@@ -56,9 +53,6 @@ public class AdminService {
     private InstructorsService instructorsService;
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
-    private CartRepository cartRepository;
-    private ChapterRepository chapterRepository;
-    private StudentsService studentsService;
     private PasswordEncoder encoder;
     private ManagersMapper managersMapper;
     private JwtTokenRepository jwtTokenRepository;
@@ -82,9 +76,6 @@ public class AdminService {
         this.instructorsService = instructorsService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
-        this.cartRepository = cartRepository;
-        this.chapterRepository = chapterRepository;
-        this.studentsService = studentsService;
         this.encoder = encoder;
         this.managersMapper = managersMapper;
         this.jwtTokenRepository = jwtTokenRepository;
@@ -154,8 +145,8 @@ public class AdminService {
 
 
     public ResponseEntity<ManagerDto> getMegetManager(Integer id) throws ResourceNotFoundException {
-        Managers manager = managersRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("manager not found"));
 
+        Managers manager = managersRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("manager not found"));
         return ResponseEntity.ok(new ManagerDto(manager.getUserId(),manager.getEmail(),manager.getFullName(),manager.getRole()));
     }
 
@@ -173,24 +164,15 @@ public class AdminService {
         
         Instructors instructor = instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
     
-        List<Courses> courses = instructor.getCourses();
-      
-        courses.forEach((course) -> course.getStudents().forEach((student) -> {
-            try {
-                
-                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId()); // 
-            } catch (Exception e) {
-                
-            }
-        }));
-        
+
         jwtTokenRepository.deleteAll(jwtTokenRepository.findAllValidTokenByUser(instructorId));
-        // instructorRepository.deleteCartCoursesJoinTable(instructorId);
+        instructorRepository.deleteCartCoursesJoinTable(instructorId);
 
         instructorRepository.deleteStudentCoursesJoinTable(instructorId);
             
         instructorRepository.deleteCourseCategoriesJoinTable(instructorId);
 
+        coursesRepository.deleteAll(instructor.getCourses());        
         instructorRepository.delete(instructor); // before delte the instructor delete the join tables
         return ResponseEntity.noContent().build();
     }
@@ -200,8 +182,8 @@ public class AdminService {
         Students student = studentsRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("student not found"));
  
         // delete student_courses join table
-        adminRepository.deleteCoursesByStudentId(studentId);
         jwtTokenRepository.deleteAll(jwtTokenRepository.findAllValidTokenByUser(student.getUserId()));
+        adminRepository.deleteCoursesByStudentId(studentId);
         
         studentsRepository.delete(student);
         
@@ -232,8 +214,8 @@ public class AdminService {
 
     public ResponseEntity<?> deleteCategory(Integer categoryId) throws ResourceNotFoundException {
         
-        Categories category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("category not found"));
-        categoryRepository.save(category);
+        categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("category not found"));
+        adminRepository.deleteCourseCategoriesJoinTableBycategory_id(categoryId);
         return ResponseEntity.status(204).build();
     }
 

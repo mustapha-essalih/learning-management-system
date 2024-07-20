@@ -54,7 +54,7 @@ public class ApiApplication implements CommandLineRunner {
 			list.add(categorie7);
 			list.add(categorie8);
 			
-			Admin admin = new Admin("admin@admin.com" , encoder.encode("1234") , "ADMIN" , "supper user", list);
+			Admin admin = new Admin("admin@admin.com" , encoder.encode("admin") , "ADMIN" , "supper user", list);
 			 
 	
 			userRepository.save(admin);

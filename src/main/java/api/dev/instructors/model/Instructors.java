@@ -1,19 +1,12 @@
 package api.dev.instructors.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import api.dev.authentication.model.JwtToken;
 import api.dev.authentication.model.User;
 import api.dev.courses.model.Courses;
-import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
 @Entity
@@ -22,7 +15,7 @@ public class Instructors extends User {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @OneToMany(cascade = CascadeType.ALL ,  mappedBy = "instructor")
+    @OneToMany(cascade = CascadeType.ALL,  mappedBy = "instructor")
     private List<Courses> courses;
 
 

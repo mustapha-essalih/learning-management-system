@@ -297,23 +297,21 @@ public class InstructorsService {
         
         if (instructor.getUserId() != course.getInstructor().getUserId()) 
             return ResponseEntity.badRequest().body("course is not related with this instructor");
-        
-        
+       
         Set<Students> students = course.getStudents();
         
-        students.forEach((student) -> {
-            try {
-                studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId());
-            } catch (ResourceNotFoundException e) {
-            }
-        });
+        
+        // students.forEach((student) -> {
+        //     try {
+        //         studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId());
+        //     } catch (ResourceNotFoundException e) {
+        //     }
+        // });
 
-        instructorRepository.deleteCourseCategoriesJoinTable(instructor.getUserId());
-        instructorRepository.deleteCartCoursesJoinTable(instructor.getUserId());
-        instructorRepository.deleteStudentCoursesJoinTable(instructor.getUserId());
-        
+        instructorRepository.deleteCourseCategoriesJoinTableByCourseId(courseId);
+        instructorRepository.deleteCartCoursesJoinTableByCourseId(courseId);
+        instructorRepository.deleteStudentCoursesJoinTableByCourseId(courseId);
         coursesRepository.delete(course);
-        
         return ResponseEntity.status(204).build();
     }
 

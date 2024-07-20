@@ -18,6 +18,7 @@ import api.dev.students.StudentsService;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,20 +34,16 @@ public class StripeService {
     private String stripeApiKey;
     
     private StudentsRepository studentsRepository;
-    private CoursesRepository coursesRepository;
     private StudentsService studentsService;
-    
-    public StripeService(StudentsRepository studentsRepository, CoursesRepository coursesRepository,
-            StudentsService studentsService, JwtService jwtService) {
+    private CoursesRepository coursesRepository;
+  
+
+    public StripeService(StudentsRepository studentsRepository, StudentsService studentsService,
+            CoursesRepository coursesRepository) {
         this.studentsRepository = studentsRepository;
-        this.coursesRepository = coursesRepository;
         this.studentsService = studentsService;
+        this.coursesRepository = coursesRepository;
     }
-
-
-    // if coure is free or not add it to the student
-    // create the order and add it to the student
-    // make the payment
 
 
     public ResponseEntity<?> createCheckoutSession(String courseName, Long amount, String email)throws StripeException, ResourceNotFoundException 
@@ -54,9 +51,9 @@ public class StripeService {
         Courses course = coursesRepository.findByTitle(courseName).orElseThrow(() -> new ResourceNotFoundException("course not found"));
         Students student = studentsRepository.findByEmail(email).get();
         
-        if (!course.getStatus().equals(Status.PUBLISHED)) {
+        if (!course.getStatus().equals(Status.PUBLISHED)) 
             throw new ResourceNotFoundException("course in review by managers");
-        }
+        
         if(addCourseToStudent(course, student))
             return ResponseEntity.ok().body("course enrolled");        
 
@@ -96,7 +93,7 @@ public class StripeService {
         if (student.getCourses().contains(course)) 
             return true;    
 
-        if (student.getCart() != null) 
+        if (student.getCart() != null)// && !student.getCart().getTotalAmount().equals(new BigDecimal(0.00))) 
             studentsService.deleteCourseFromCart(course.getCourseId() ,student.getCart().getCartId() , student.getUserId());
         
         student.getCourses().add(course);

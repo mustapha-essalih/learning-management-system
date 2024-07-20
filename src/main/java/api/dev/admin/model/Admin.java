@@ -9,11 +9,12 @@ import api.dev.courses.model.Categories;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
 @Entity
 public class Admin extends User {
-    
+
     @OneToMany(cascade = CascadeType.ALL , orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private List<Categories> categories;

@@ -99,24 +99,14 @@ public class StudentsService {
 
 
     public ResponseEntity<?> deleteCourseFromCart(Integer courseId, Integer cartId, Integer studentId) throws ResourceNotFoundException {
+        
         Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course is not published or not free or not found"));
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
+        cartRepository.findById(cartId).orElseThrow(() -> new ResourceNotFoundException("cart not found"));
+       
+        cartRepository.updateCartTotalAmount(cartId, course.getPrice());
         
-        Set<Courses> courses = cart.getCourses();
-        if (!courses.isEmpty()) {
-            
-            courses.forEach((c) -> {
-                if(c.getCourseId() == course.getCourseId())
-                {
-                    BigDecimal totalAmount = course.getPrice();
-                    cart.setTotalAmount(cart.getTotalAmount().subtract(totalAmount));
-                    courses.remove(course);
-                    cartRepository.save(cart);
-                }
-            } );
-        }
-        studentsRepository.deleteCoursesFromCartByStudentId(studentId);
-        
+        studentsRepository.deleteCartCourseByCartIdAndCourseId(cartId,course.getCourseId());
+
         return ResponseEntity.status(204).build();
     }
 }

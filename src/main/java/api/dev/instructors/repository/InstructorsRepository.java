@@ -28,4 +28,24 @@ public interface InstructorsRepository extends JpaRepository<Instructors,Integer
     @Transactional
     @Query(value = "DELETE FROM student_courses WHERE course_id IN (SELECT c.course_id FROM courses c WHERE c.instructor_id = :instructorId)", nativeQuery = true)
     void deleteStudentCoursesJoinTable(@Param("instructorId") Integer instructorId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM course_categories WHERE course_id = :courseId", nativeQuery = true)
+    void deleteCourseCategoriesJoinTableByCourseId(@Param("courseId") Integer courseId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM cart_courses WHERE course_id = :courseId", nativeQuery = true)
+    void deleteCartCoursesJoinTableByCourseId(@Param("courseId") Integer courseId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM student_courses WHERE course_id = :courseId", nativeQuery = true)
+    void deleteStudentCoursesJoinTableByCourseId(@Param("courseId") Integer courseId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM courses WHERE instructor_id = :instructorId", nativeQuery = true)
+    void deleteCoursesByInstructorId(@Param("instructorId") Integer instructorId);
 }
