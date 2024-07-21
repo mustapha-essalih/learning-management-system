@@ -17,6 +17,7 @@ import api.dev.security.JwtService;
 import api.dev.students.StudentsService;
 import api.dev.students.model.Students;
 import api.dev.students.repository.StudentsRepository;
+import api.dev.utils.ApiResponse;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -52,10 +53,10 @@ public class StripeService {
         Students student = studentsRepository.findByEmail(email).get();
         
         if (!course.getStatus().equals(Status.PUBLISHED)) 
-            throw new ResourceNotFoundException("course in review by managers");
+            throw new ResourceNotFoundException(new ApiResponse("course in review by managers, manager should verify the course and change the status to publish."));
         
         if(addCourseToStudent(course, student))
-            return ResponseEntity.ok().body("course enrolled");        
+            return ResponseEntity.ok().body(new ApiResponse("course enrolled"));        
 
         Stripe.apiKey = stripeApiKey;
 

@@ -56,9 +56,9 @@ public class InstructorsController {
         @ApiResponse(responseCode = "401", description = "ivalid jwt."),
     })
     @PostMapping("/upload-course")
-    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException, BadRequestException
+    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request, Principal principal) throws ResourceNotFoundException, BadRequestException
     { 
-        return instructorsService.uploadCourse(request);
+        return instructorsService.uploadCourse(request, principal.getName());
     }
 
     @Operation(summary = "Update a course", description = "Allows instructor to update the details of a course including title, description, category, etc.")

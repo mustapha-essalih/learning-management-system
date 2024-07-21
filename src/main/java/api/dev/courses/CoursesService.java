@@ -161,14 +161,19 @@ public class CoursesService {
 
 
     public ResponseEntity<?> getResource( Integer courseId , String filePath, String contentType, String email ) throws ResourceNotFoundException, AccessDeniedException {
-
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("user not found"));
         Courses  course = coursesRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("course not found"));
-
         if (user.getRole().equals("STUDENT")) 
         {
+            if (filePath.equals(course.getCourseImage())) {
+                byte[] file = FileUtils.returnFileFromStorage( System.getProperty("user.dir") + "/uploads/" + filePath);
+                
+                return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf(contentType)).body(file);        
+            }
+            
             if (!course.getStudents().contains(user)) 
             {
+                // System.out.println("FFFFFFFFF");
                 throw new RuntimeException("you don't have permission to access this resource");
             }
         }
@@ -186,7 +191,7 @@ public class CoursesService {
 
 
     public ResponseEntity<List<CourseDTO>> getCourses() {
-        
+        System.out.println("FFFFFFFFFFFF");
         List<Courses> allCourses = coursesRepository.findAll();
         return ResponseEntity.ok(courseMapper.coursesToCourseDTOsWithDetails(allCourses, false));
     }

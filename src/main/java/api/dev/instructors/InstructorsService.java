@@ -85,15 +85,16 @@ public class InstructorsService {
     }
 
 
-    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request) throws ResourceNotFoundException, BadRequestException {
+    public ResponseEntity<?> uploadCourse(MultipartHttpServletRequest request, String email) throws ResourceNotFoundException, BadRequestException {
       
-        Integer instructorId = Integer.parseInt(request.getParameter("instructorId"));
-
-        Instructors instructor =  instructorRepository.findById(instructorId).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
+        Instructors instructor =  instructorRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("instructor not found"));
 
         Set<Map.Entry<String, String[]>> parameterEntries = request.getParameterMap().entrySet();
     
         List<Chapter> listOfChapters = new ArrayList<>();
+        if (request.getParameter("description") == null || request.getParameter("title") == null) {
+            return ResponseEntity.badRequest().body("error in upload course");
+        }
 
         Courses newCourses = createNewCourse(request, instructor);
 
@@ -115,9 +116,18 @@ public class InstructorsService {
         Set<Categories> set = new HashSet<>();
         set.add(category);
  
+        Boolean isFree = Boolean.parseBoolean(request.getParameter("isFree"));
+        BigDecimal price;
+        if (isFree) 
+        {
+            price = null;
+        }
+        else
+            price = new BigDecimal(request.getParameter("price"));
+
         Courses newCourse = new Courses(set,request.getParameter("description"),request.getParameter("title"),
         Language.valueOf(request.getParameter("language")), Level.valueOf(request.getParameter("level")),
-        new BigDecimal(request.getParameter("price")), Status.PENDING,  Boolean.parseBoolean(request.getParameter("isFree")));
+        price, Status.PENDING,  isFree);
                  
         return newCourse;
     }
@@ -298,15 +308,6 @@ public class InstructorsService {
         if (instructor.getUserId() != course.getInstructor().getUserId()) 
             return ResponseEntity.badRequest().body("course is not related with this instructor");
        
-        Set<Students> students = course.getStudents();
-        
-        
-        // students.forEach((student) -> {
-        //     try {
-        //         studentsService.deleteCourseFromCart(course.getCourseId(), student.getCart().getCartId(), student.getUserId());
-        //     } catch (ResourceNotFoundException e) {
-        //     }
-        // });
 
         instructorRepository.deleteCourseCategoriesJoinTableByCourseId(courseId);
         instructorRepository.deleteCartCoursesJoinTableByCourseId(courseId);

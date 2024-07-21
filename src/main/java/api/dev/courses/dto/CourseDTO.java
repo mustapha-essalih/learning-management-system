@@ -13,7 +13,7 @@ public class CourseDTO {
     private String courseImage;
     private String level;
     private String language;
-    private boolean isFree;
+    private boolean isFree; // free
     private String contentType;
     private LocalDateTime updatedAt;
     private String createdBy;
